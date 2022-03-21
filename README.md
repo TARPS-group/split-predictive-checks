@@ -2,7 +2,7 @@
 
 The ```spc``` package was used produce the experiments for:
 
-Jiawei Li and Jonathan H. Huggins. *Calibrated Split Predictive Checks*. 2022.
+Jiawei Li and Jonathan H. Huggins. *Calibrated Model Criticism Using Split Predictive Checks*. 2022.
 
 
 The package includes functionality to load data, compute single and divided SPCs for conjugate Poisson model, Gaussian location model, two-level hierarchical Gaussian models, run SPCs for real-data examples and compare performance of SPCs to other methods.
