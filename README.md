@@ -12,9 +12,9 @@ Data
 
 # Usage
 
-For spc functions, see [spc/]() directory.
+For spc functions, see [spc/](https://github.com/TARPS-group/split-predictive-checks/tree/main/spc) directory.
 
-For example usages, see [script/]() directory.
+For example usages, see [script/](https://github.com/TARPS-group/split-predictive-checks/tree/main/script) directory.
 
 All results and plots can be reproduced by running "__main.r" files.
 
