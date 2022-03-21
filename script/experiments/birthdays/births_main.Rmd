@@ -84,7 +84,7 @@ $$
 Compile Stan model 6 [gpbf6.stan](https://github.com/avehtari/casestudies/blob/master/Birthdays/gpbf6.stan)
 
 ```{r model6, results='hide'}
-source(root("spc/experiments/birthdays/codes","births_model6.R"))
+source(root("script/experiments/birthdays","births_model6.R"))
 
 # compute p-values
 single_SPC_births(data, model6, stan_data6, train_prop = 0.5, lag = 30, 
