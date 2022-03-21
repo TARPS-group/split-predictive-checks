@@ -1,0 +1,187 @@
+---
+title: "simulation_plots"
+author: "Jiawei Li"
+date: "10/21/2021"
+output: html_document
+---
+
+```{r}
+root <- has_file("README.md")$make_fix_file()
+source(root("spc/codes","evaluation.r")) 
+```
+
+# Poisson Model
+
+
+- Compare different SPC proportions for single SPC
+
+```{r}
+load("poisson_model.rda")
+updated_data <- updated_data %>% filter(method %in% c("single 0.1-SPC", "single 0.3-SPC", "single 0.5-SPC", "single 0.7-SPC", "single 0.9-SPC"))
+eval_checks(updated_data, discr_name = "emp_mean",  model_name = "Poisson model")
+eval_checks(updated_data, discr_name = "sec_moment",  model_name = "Poisson model")
+eval_checks(updated_data, discr_name = "third_moment",  model_name = "Poisson model")
+eval_checks(updated_data, discr_name = "mse",  model_name = "Poisson model")
+```
+
+
+- Compare different SPC proportions for divided SPC with $k = N^{0.49}$.
+```{r}
+load("poisson_model.rda")
+updated_data <- updated_data %>% filter(method %in% c("divided 0.1-SPC", "divided 0.3-SPC", "divided 0.5-SPC", "divided 0.7-SPC", "divided 0.9-SPC"))
+
+eval_checks(updated_data, discr_name = "emp_mean", model_name = "Poisson model")
+eval_checks(updated_data, discr_name = "sec_moment",model_name = "Poisson model")
+eval_checks(updated_data, discr_name = "third_moment",model_name = "Poisson model")
+eval_checks(updated_data, discr_name = "mse", model_name = "Poisson model")
+
+```
+
+
+- Compare different k's for divided SPC with SPC proportion $q = 0.5$
+
+```{r}
+load("poisson_model.rda")
+updated_data <- updated_data %>% filter(method %in% c("divided 0.5-SPC, k = N^(.4)", "divided 0.5-SPC, k = N^(.49)", "divided 0.5-SPC, k = N^(.6)", "divided 0.5-SPC, k = N^(.8)"))
+eval_checks(updated_data, discr_name = "emp_mean", model_name = "Poisson model")
+eval_checks(updated_data, discr_name = "sec_moment",model_name = "Poisson model")
+eval_checks(updated_data, discr_name = "third_moment",model_name = "Poisson model")
+eval_checks(updated_data, discr_name = "mse", model_name = "Poisson model")
+```
+
+
+- Compare `Pop-PC`, `PPC`, `single 0.5-SPC`, `divided 0.5-SPC` power/ test size
+```{r}
+load("poisson_model.rda")
+updated_data <- updated_data %>% filter(method %in% c("PPC", "Pop-PC ideal", "single 0.5-SPC", "divided 0.5-SPC"))
+eval_checks(updated_data, discr_name = "emp_mean", model_name = "Poisson model")
+eval_checks(updated_data, discr_name = "sec_moment",model_name = "Poisson model")
+eval_checks(updated_data, discr_name = "third_moment",model_name = "Poisson model")
+eval_checks(updated_data, discr_name = "mse", model_name = "Poisson model")
+
+qq_plot_comparison(updated_data, discr_name = "emp_mean")
+qq_plot_comparison(updated_data, discr_name = "sec_moment")
+qq_plot_comparison(updated_data, discr_name = "third_moment")
+qq_plot_comparison(updated_data, discr_name = "mse")
+```
+
+
+```{r}
+load("poisson_mismatch_comparison.rda")
+eval_checks_clean_mismatch(updated_data, discr_name = "emp_mean")
+eval_checks_clean_mismatch(updated_data, discr_name = "sec_moment")
+
+```
+
+- Compare `Pop-PC`, `PPC`, `single 0.9-SPC`, `divided 0.9-SPC` adjusted priorESS 
+```{r}
+load("poisson_model_ess.rda")
+updated_data <- updated_data %>% filter(true_theta == 25, quantile == 0.95)
+plot_ts_ESS(updated_data, model_name = "Poisson", discr_fun_name = "emp_mean") 
+plot_ts_ESS(updated_data, model_name = "Poisson", discr_fun_name = "sec_moment") 
+```
+
+
+
+
+# Gaussian Model
+
+- Compare different SPC proportions for single SPC
+```{r}
+load("gaussian_model.rda")
+updated_data <- updated_data %>% filter(method %in% c("single 0.1-SPC", "single 0.3-SPC", "single 0.5-SPC", "single 0.7-SPC", "single 0.9-SPC"))
+eval_checks(updated_data, discr_name = "emp_mean",  model_name = "Gaussian model")
+eval_checks(updated_data, discr_name = "sec_moment",  model_name = "Gaussian model")
+eval_checks(updated_data, discr_name = "quantile_0.75",  model_name = "Gaussian model")
+eval_checks(updated_data, discr_name = "mse",  model_name = "Gaussian model")
+```
+
+- Compare different SPC proportions for divided SPC with $k = N^{0.49}$.
+```{r}
+load("gaussian_model.rda")
+updated_data <- updated_data %>% filter(method %in% c("divided 0.1-SPC", "divided 0.3-SPC", "divided 0.5-SPC", "divided 0.7-SPC", "divided 0.9-SPC"))
+eval_checks(updated_data, discr_name = "emp_mean",  model_name = "Gaussian model")
+eval_checks(updated_data, discr_name = "sec_moment",  model_name = "Gaussian model")
+eval_checks(updated_data, discr_name = "quantile_0.75",  model_name = "Gaussian model")
+eval_checks(updated_data, discr_name = "mse",  model_name = "Gaussian model")
+
+```
+
+
+- Compare different k's for divided SPC with SPC proportion $q = 0.9$
+
+```{r}
+load("gaussian_model.rda")
+updated_data <- updated_data %>% filter(method %in% c("divided 0.5-SPC, k = N^(.4)", "divided 0.5-SPC, k = N^(.49)", "divided 0.5-SPC, k = N^(.6)", "divided 0.5-SPC, k = N^(.8)"))
+eval_checks(updated_data, discr_name = "quantile_0.75",  model_name = "Gaussian model")
+eval_checks(updated_data, discr_name = "sec_moment",  model_name = "Gaussian model")
+eval_checks(updated_data, discr_name = "emp_mean",  model_name = "Gaussian model")
+eval_checks(updated_data, discr_name = "mse",  model_name = "Gaussian model")
+```
+
+
+- Compare `Pop-PC`, `PPC`, `single 0.9-SPC`, `divided 0.9-SPC` power/ test size
+```{r}
+load("gaussian_model.rda")
+updated_data <- updated_data %>% filter(method %in% c("PPC", "Pop-PC ideal", "single 0.5-SPC", "divided 0.5-SPC"))
+eval_checks(updated_data, discr_name = "emp_mean",  model_name = "Gaussian model")
+eval_checks(updated_data, discr_name = "quantile_0.75",  model_name = "Gaussian model")
+eval_checks(updated_data, discr_name = "sec_moment",  model_name = "Gaussian model")
+eval_checks(updated_data, discr_name = "mse",  model_name = "Gaussian model")
+
+qq_plot_comparison(updated_data, discr_name = "emp_mean")
+qq_plot_comparison(updated_data, discr_name = "quantile_0.75")
+qq_plot_comparison(updated_data, discr_name = "sec_moment")
+qq_plot_comparison(updated_data, discr_name = "mse")
+```
+
+
+# Gaussian Hierachical Model
+
+### Scenario 1: well-specified model
+```{r well-specified}
+load("hier_well_specified.rda")
+updated_data <- updated_data %>% filter(num_of_indi == 8)
+size_plot_hier_fixJ_clean(updated_data, discr_name = "grand_mean", iter = 200)
+size_plot_hier_fixJ_clean(updated_data, discr_name = "q0.75_group_means", iter = 200)
+size_plot_hier_fixJ_clean(updated_data, discr_name = "mean_group_q75", iter = 200)
+
+qq_plot_comparison_hier(updated_data, fixed_num_of_indi = 8,  discr_name = "grand_mean", iter = 200)
+qq_plot_comparison_hier(updated_data, fixed_num_of_indi = 8,  discr_name = "q0.75_group_means", iter = 200)
+qq_plot_comparison_hier(updated_data, fixed_num_of_indi = 8,  discr_name = "mean_group_q75", iter = 200)
+```
+### Scenario 2: Misspecified across groups
+```{r S1-hier_cr, message = FALSE}
+load("hier_cr_jeff.rda")
+updated_data <- updated_data %>% filter(num_of_indi == 8)
+eval_checks_hier_fixJ_clean(updated_data, discr_name = "", iter = 200)
+
+load("hier_cr_jeff.rda")
+updated_data <- updated_data %>% filter(num_of_groups == 20)
+eval_checks_hier_fixI_clean(updated_data, discr_name = "", iter = 200)
+
+```
+### Scenario 3: Misspecified within groups
+```{r S1-hier_cr, message = FALSE}
+load("hier_wi_gr_var.rda")
+updated_data <- updated_data %>% filter(num_of_indi == 8)
+eval_checks_hier_fixJ_clean(updated_data, discr_name = "", iter = 200)
+
+load("hier_wi_gr_var.rda")
+updated_data <- updated_data %>% filter(num_of_groups == 20)
+eval_checks_hier_fixI_clean(updated_data, discr_name = "", iter = 200)
+
+```
+
+
+### Scenario 4: Misspecified both across and within groups
+```{r S1-hier_cr, message = FALSE}
+load("hier_wi_lognorm.rda")
+updated_data <- updated_data %>% filter(num_of_indi == 8)
+eval_checks_hier_fixJ_clean(updated_data, discr_name = "", iter = 200)
+
+load("hier_wi_lognorm.rda")
+updated_data <- updated_data %>% filter(num_of_groups == 20)
+eval_checks_hier_fixI_clean(updated_data, discr_name = "", iter = 200)
+
+```

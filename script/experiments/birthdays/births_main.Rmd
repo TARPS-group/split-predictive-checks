@@ -1,0 +1,121 @@
+---
+title: "birthday_model"
+author: "Jiawei Li"
+date: "8/13/2021"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=FALSE, error=FALSE, warning=FALSE, comment=NA, cache=FALSE)
+# switch this to TRUE to save figures in separate files
+savefigs <- FALSE
+```
+
+#### Load packages
+
+```{r message = FALSE}
+library(tidyverse)
+library(loo)
+library(bayesplot)
+library(reshape2)
+library("rprojroot")
+library(ggplot2)
+library(purrr)
+theme_set(bayesplot::theme_default(base_family = "sans"))
+library(patchwork)
+set1 <- RColorBrewer::brewer.pal(7, "Set1")
+library(cmdstanr)
+library(posterior)
+options(pillar.neg = FALSE, pillar.subtle=FALSE, pillar.sigfig=2)
+```
+
+## Load and plot data
+
+Load birthdays per day in USA 1969-1988:
+
+```{r }
+root <- has_file("README.md")$make_fix_file()
+source(root("spc/experiments/birthdays/codes","births_funs.R"))
+data <- read_csv(root("spc/experiments/birthdays/data", "births_usa_1969.csv"))
+data <- data %>%
+  mutate(date = as.Date("1968-12-31") + id,
+         births_relative100 = births/mean(births)*100)
+```
+
+
+
+### Model 1: Slow trend
+
+The model 1 is just the slow trend over the years using Hilbert
+space basis function approximated Gaussian process
+$$
+f = \mbox{intercept} + f_1\\
+\mbox{intercept} \sim \mbox{normal}(0,1)\\
+f_1 \sim \mbox{GP}(0,K_1)
+$$
+
+```{r singleSPC}
+source(root("spc/experiments/birthdays/codes","births_model1.R"))
+  
+single_SPC_births(data, model1, stan_data1, train_prop = 0.5, lag = 30, R = 1000, interpolation = FALSE, path_to_results = "births_model1_results.rda", path_to_rep_data = "births_model1_pred_data.rda")
+single_SPC_births(data, model1, stan_data1, train_prop = 0.5, lag = 30, R = 1000, interpolation = TRUE, path_to_results = "births_model1_results.rda", path_to_rep_data = "births_model1_pred_data.rda")
+# single_SPC_births computes PPC pvalues when train_prop and interpolation is NULL
+single_SPC_births(data, model1, stan_data1, train_prop = NULL, lag = 30, R = 1000, interpolation = "N/A", path_to_results = "births_model1_results.rda", path_to_rep_data = "births_model1_pred_data.rda") 
+
+```
+
+
+
+
+
+### Model 6: long term smooth + seasonal + weekday + day of year
+
+
+$$
+f = \mbox{intercept} + f_1 + f_2 + \beta_{\mbox{day of week}} + \beta_{\mbox{day of year}}\\
+\mbox{intercept} \sim \mbox{normal}(0,1)\\
+f_1 \sim \mbox{GP}(0,K_1)\\
+f_2 \sim \mbox{GP}(0,K_2)\\
+g_3 \sim \mbox{GP}(0,K_3)\\
+\beta_{\mbox{day of week}} = 0 \quad \mbox{if day of week is Monday}\\
+\beta_{\mbox{day of week}} \sim \mbox{normal}(0,1) \quad \mbox{if day of week is not Monday}\\
+\beta_{\mbox{day of year}} \sim \mbox{normal}(0,0.1)
+$$
+
+Compile Stan model 6 [gpbf6.stan](https://github.com/avehtari/casestudies/blob/master/Birthdays/gpbf6.stan)
+
+```{r model6, results='hide'}
+source(root("spc/experiments/birthdays/codes","births_model6.R"))
+
+# compute p-values
+single_SPC_births(data, model6, stan_data6, train_prop = 0.5, lag = 30, 
+                  R = 200, interpolation = FALSE, 
+                  path_to_results = "births_model6_results.rda", 
+                  path_to_rep_data = "births_model6_prep_data.rda")
+single_SPC_births(data, model6, stan_data6, train_prop = 0.5, lag = 30, 
+                  R = 200, interpolation = TRUE, 
+                  path_to_results = "births_model6_results.rda", 
+                  path_to_rep_data = "births_model6_prep_data.rda")
+single_SPC_births(data, model6, stan_data6, train_prop = NULL, lag = 30, 
+                  R = 200, interpolation = "N/A", 
+                  path_to_results = "births_model6_results.rda", 
+                  path_to_rep_data = "births_model6_prep_data.rda")
+
+```
+
+```{r}
+# visualizations
+load("births_model1_results.rda")
+plot_pvals_lags_combined(results)
+
+load("births_model6_results.rda")
+plot_pvals_lags_combined(results)
+
+load("births_model1_pred_data.rda")
+plot_fit(data, df, train_prop = 0.5, interpolate = FALSE)
+plot_fit(data, df, train_prop = 0.5, interpolate = TRUE)
+load("births_model6_pred_data.rda")
+plot_fit(data, df, train_prop = 0.5, interpolate = FALSE)
+plot_fit(data, df, train_prop = 0.5, interpolate = TRUE)
+
+```
+

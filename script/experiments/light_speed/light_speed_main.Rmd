@@ -1,0 +1,60 @@
+---
+title: "light_speed"
+author: "Jiawei Li"
+date: "10/5/2021"
+output: html_document
+---
+
+```{r load_pkgs}
+library("rprojroot")
+library(tidyverse)
+library(rstan)
+rstan_options(auto_write=TRUE)
+library(bayesplot)
+library(ggplot2)
+library(purrr)
+library(BayesDA)
+library(gtools)
+theme_set(bayesplot::theme_default(base_family = "sans"))
+library(patchwork)
+root <- has_file("README.md")$make_fix_file()
+source(root("spc/codes", "utils.r"))
+source(root("spc/experiments/light_speed", "light_model.R"))
+results <- NULL
+save(results, file = "light_model_results.rda")
+save(results, file = "test.rda")
+```
+
+
+
+```{r}
+data(light)  
+light <- permute(light)
+mod <- stan_model(root("spc/experiments/light_speed","light_speed_model.stan"))
+run_experiment_light(data = light, model = mod, discr_name = "emp_mean", 
+                     data_path = "light_model_results.rda", R = 5000, iter = 1000)
+run_experiment_light(data = light, model = mod, discr_name = "sd", 
+                     data_path = "light_model_results.rda", R = 5000, iter = 1000)
+run_experiment_light(data = light, model = mod, discr_name = "mse", 
+                     data_path = "light_model_results.rda", R = 5000, iter = 1000)
+run_experiment_light(data = light, model = mod, discr_name = "quantile_0.05", 
+                     data_path = "light_model_results.rda", R = 5000, iter = 1000)
+run_experiment_light(data = light, model = mod, discr_name = "quantile_0.95", 
+                     data_path = "light_model_results.rda", R = 5000, iter = 1000)
+
+```
+
+
+```{r}
+# plot data, posterior and posterior predictive distribution
+post <- get_posterior_draws(light, mod)
+post_draws <- post$mu
+post_draws <- post$pred
+plot_hist_comparison(light, post_draws, post_pred_draws)
+
+
+# generate table for p-values of different statistics
+load("light_model_results.rda")
+results %>% group_by(method, discr_fun) %>% summarise(pvals = mean(pvals)) %>% arrange(method)
+```
+
