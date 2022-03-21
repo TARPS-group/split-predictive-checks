@@ -1,6 +1,6 @@
 # split-predictive-checks
 
-The ```spc``` package was used produce the experiments for:
+The ```spc``` package was used to reproduce the experiments for:
 
 Jiawei Li and Jonathan H. Huggins. *Calibrated Model Criticism Using Split Predictive Checks*. 2022.
 
