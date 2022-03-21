@@ -3,7 +3,7 @@ library(cmdstanr)
 library(posterior)
 options(pillar.neg = FALSE, pillar.subtle=FALSE, pillar.sigfig=2)
 
-model6 <- cmdstan_model(stan_file = root("spc/experiments/birthdays/codes", "gpbf6.stan"), include_paths = root("spc/experiments/birthdays/codes"))
+model6 <- cmdstan_model(stan_file = root("script/experiments/birthdays", "gpbf6.stan"), include_paths = root("script/experiments/birthdays"))
 
 para_mod <- NULL
 

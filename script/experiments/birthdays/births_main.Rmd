@@ -34,8 +34,8 @@ Load birthdays per day in USA 1969-1988:
 
 ```{r }
 root <- has_file("README.md")$make_fix_file()
-source(root("spc/experiments/birthdays/codes","births_funs.R"))
-data <- read_csv(root("spc/experiments/birthdays/data", "births_usa_1969.csv"))
+source(root("script/experiments/birthdays","births_funs.R"))
+data <- read_csv(root("script/experiments/birthdays/data", "births_usa_1969.csv"))
 data <- data %>%
   mutate(date = as.Date("1968-12-31") + id,
          births_relative100 = births/mean(births)*100)
@@ -54,7 +54,7 @@ f_1 \sim \mbox{GP}(0,K_1)
 $$
 
 ```{r singleSPC}
-source(root("spc/experiments/birthdays/codes","births_model1.R"))
+source(root("script/experiments/birthdays","births_model1.R"))
   
 single_SPC_births(data, model1, stan_data1, train_prop = 0.5, lag = 30, R = 1000, interpolation = FALSE, path_to_results = "births_model1_results.rda", path_to_rep_data = "births_model1_pred_data.rda")
 single_SPC_births(data, model1, stan_data1, train_prop = 0.5, lag = 30, R = 1000, interpolation = TRUE, path_to_results = "births_model1_results.rda", path_to_rep_data = "births_model1_pred_data.rda")
