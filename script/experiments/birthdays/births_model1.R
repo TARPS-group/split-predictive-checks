@@ -20,7 +20,7 @@ stan_data1 <- function(data_obs, data_new){
 generate_yrep_with_par <- function(stan_data){
   opt1 <- model1$optimize(data = stan_data, init = 0, algorithm='bfgs')
   odraws1 <- opt1$draws()
-  init1 <- sapply(c('intercept','sigma_f1','lengthscale_f1','beta_f1','sigma'),
+  init1 <- sapply(c('intercept0','sigma_f1','lengthscale_f1','beta_f1','sigma'),
                   function(variable) {as.numeric(subset(odraws1, variable=variable))})
   fit1 <- model1$sample(data = stan_data, iter_warmup=100, iter_sampling=100,
                         chains= 3, parallel_chains = 3,

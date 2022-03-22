@@ -82,6 +82,7 @@ generated quantities {
   vector[N_new] fpred;
   vector[7] f_day_of_week;
   vector[N_obs] log_lik;
+  vector[N_new] yrep;
   {
     // spectral densities for f1 and f2
     vector[M_f1] diagSPD_f1 = diagSPD_EQ(sigma_f1, lengthscale_f1, L_f1, M_f1);
@@ -98,6 +99,7 @@ generated quantities {
     f1_pred = (intercept0 + PHI_f1_pred * (diagSPD_f1 .* beta_f1))*ysd_obs;
     f2_pred = (PHI_f2_pred * (diagSPD_f2 .* beta_f2))*ysd_obs;
     fpred = f1_pred + f2_pred + (intercept-intercept0)*ysd_obs + ymean_obs;
+    for (n in 1:N_new) yrep[n] = exp(normal_rng(fpred[n], sigma*ysd_obs));
     // log_liks for loo
     for (n in 1:N_obs) log_lik[n] = normal_lpdf(y_obs[n] | f[n], sigma*ysd_obs);
   }

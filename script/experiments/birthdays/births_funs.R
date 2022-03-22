@@ -1,31 +1,25 @@
 
-results <- df <- NULL
-save(results, file = "births_model1_results.rda")
-save(results, file = "births_model6_results.rda")
-save(df, file = "births_model1_pred_data.rda")
-save(df, file = "births_model6_pred_data.rda")
 
-single_SPC_births <- function(data, model, stan_data_fun, train_prop = 0.5, lag = 30, R = 200, interpolation = FALSE, path_to_results, path_to_rep_data ){
+
+single_SPC_births <- function(data, model, stan_data_fun, train_prop = 0.5, lag = 30, R = 200, method, path_to_results, path_to_rep_data ){
   N <- as.numeric(count(data))
  
-  if(interpolation == TRUE){
-    # extreme interpolation
-    held_out <- seq(from = 1, to = N, by = ceiling(1/(1 - train_prop) ))
-    int_type <- "Interpolated single 0.5-SPC"
-    data_obs <- data %>% filter(!id %in% held_out )
+  if(method == "Interpolated single 0.5-SPC"){
+    # extreme method
+    held_out <- seq(from = 1, to = N-1, by = ceiling(1/(1 - train_prop) ))
+    obs_id <- seq(from = 2, to = N, by = ceiling(1/(1 - train_prop) ))
+    data_obs <- data %>% filter(id %in% obs_id )
     data_new <- data %>% filter(id %in% held_out)
-    method_name <- paste0("single ",train_prop,"-SPC")
-  }else if (interpolation == FALSE){
+  }else if (method == "Extrapolated single 0.5-SPC"){
     # consecutively split the data
-    held_out <- seq(from = floor(N * train_prop), to = N, by = 1 ) 
-    int_type <- "Extrapolated single 0.5-SPC"
-    data_obs <- data %>% filter(!id %in% held_out )
-    data_new <- data %>% filter(id %in% held_out)
-    method_name <- paste0("single ",train_prop,"-SPC")
-  }else{
-    data_obs <- data_new <- data
-    int_type <- method_name <- "PPC"
+    held_out <- seq(from = floor(N * train_prop)+1, to = N-1, by = 1 ) 
+    obs_id <- seq(from = 1, to = floor(N * train_prop) , by = 1 ) 
     
+    data_obs <- data %>% filter(id %in% obs_id )
+    data_new <- data %>% filter(id %in% held_out)
+  }else if(method == "PPC"){
+    data_obs <- data_new <- data
+ 
   }
 
 
@@ -33,9 +27,10 @@ single_SPC_births <- function(data, model, stan_data_fun, train_prop = 0.5, lag 
   N_new = length(data_new$id)
   
   stan_data <- stan_data_fun(data_obs, data_new)
-  opt <- model$optimize(data = stan_data, init = 0, algorithm='bfgs')
+  stan_data0 <- stan_data_fun(data, data)
+  opt <- model$optimize(data = stan_data0, init = 0, algorithm='bfgs')
   odraws <- opt$draws()
-  init <- sapply(c('intercept','sigma_f1','lengthscale_f1','beta_f1','sigma'),
+  init <- sapply(c('intercept0','sigma_f1','lengthscale_f1','beta_f1','sigma'),
                  function(variable) {as.numeric(subset(odraws, variable=variable))})
   fit <- model$sample(data = stan_data, iter_warmup = 200, iter_sampling = R,
                       chains = 1, parallel_chains = 1,
@@ -60,8 +55,7 @@ single_SPC_births <- function(data, model, stan_data_fun, train_prop = 0.5, lag 
   lag_labels <- sapply(seq(0, lag, by = 1), toString)
   
   # also store the last copy of fitted values
-  new_results <- tibble(method = rep(method_name, lag_num),
-                        interpolation = rep(int_type, lag_num) ,
+  new_results <- tibble(method = rep(method, lag_num) ,
                         lag_k = lag_labels,
                         pvals = pvals)
   
@@ -73,8 +67,7 @@ single_SPC_births <- function(data, model, stan_data_fun, train_prop = 0.5, lag 
   save(results,  file = path_to_results)
   
   load(path_to_rep_data)
-  new_df <- tibble(method = rep(method_name, N_new),
-                   interpolation = rep(int_type, N_new),
+  new_df <- tibble(method = rep(method, N_new),
                    Efpred_draws = y_rep
   )
   df <- rbind(new_df, df)
@@ -83,27 +76,25 @@ single_SPC_births <- function(data, model, stan_data_fun, train_prop = 0.5, lag 
 }
 
 
-
-plot_fit <- function(data, results, train_prop = 0.5, interpolate = TRUE){
+plot_fit <- function(data, results, train_prop = 0.5, method_name){
   set1 <- RColorBrewer::brewer.pal(7, "Set1")
-  method_name <- paste0("single ",train_prop,"-SPC")
   N <- as.numeric(count(data))
-  if(interpolate){
-    # extreme interpolation
-    held_out <- seq(from = 1, to = N, by = ceiling(1/(1 - train_prop) ))
-  }else{
+  if(method_name == "Interpolated single 0.5-SPC"){
+    # extreme method
+    held_out <- seq(from = 1, to = N-1, by = ceiling(1/(1 - train_prop) ))
+    obs_id <- seq(from = 2, to = N, by = ceiling(1/(1 - train_prop) ))
+  }else if(method_name == "Extrapolated single 0.5-SPC"){
     # consecutively split the data
-    held_out <- seq(from = floor(N * train_prop), to = N, by = 1 ) 
+    held_out <- seq(from = floor(N * train_prop)+1, to = N-1, by = 1 ) 
+    obs_id <- seq(from = 1, to = floor(N * train_prop) , by = 1 ) 
   }
   
-  highlight_obs <- data %>% 
-    filter(!id %in% held_out)
-  highlight_new <- data %>% 
-    filter(id %in% held_out) 
+  highlight_obs <- data %>% filter(id %in% obs_id)
+  highlight_new <- data %>% filter(id %in% held_out) 
   N_new <- as.numeric(count(highlight_new))
   
-  spc_results <- results %>% filter(method == method_name, interpolation == interpolate)
-  y_rep <- spc_results$Efpred_draws 
+  spc_results <- results %>% filter(method == method_name)
+  y_rep <- spc_results$Efpred_draws
   highlight_new <- highlight_new %>% mutate(yrep = y_rep, held_out_id = held_out)
   fig <- data %>% 
     ggplot(aes(x = date)) +
@@ -139,7 +130,7 @@ plot_fit <- function(data, results, train_prop = 0.5, interpolate = TRUE){
 
 plot_pvals_lags_combined <- function(results){
   plt_legend <- ggplot() + 
-    geom_point(data = results, aes(x = as.factor(lag_k), y = pvals, color = interpolation), position = position_dodge(width = 1)) +
+    geom_point(data = results, aes(x = as.factor(lag_k), y = pvals, color = method), position = position_dodge(width = 1)) +
     geom_hline(yintercept = 0.05, color = "black", linetype = "dotted")  + 
     scale_color_manual(breaks = c("PPC",  "Interpolated single 0.5-SPC", "Extrapolated single 0.5-SPC","Interpolated single 0.9-SPC", "Extrapolated single 0.9-SPC"),values=c("#999999", "#0072B2", "#D55E00","#0072B2", "#D55E00")) +
     theme( axis.text.x = element_text(angle = 0),
@@ -154,7 +145,7 @@ plot_pvals_lags_combined <- function(results){
            strip.text = element_text(size = 13),
            legend.text = element_text(size = 13, color = "black")) +  labs(x="lag", y="p-values")
   plt_nonlegend <- ggplot() + 
-    geom_point(data = results, aes(x = as.factor(lag_k), y = pvals, color = interpolation), position = position_dodge(width = 1)) +
+    geom_point(data = results, aes(x = as.factor(lag_k), y = pvals, color = method), position = position_dodge(width = 1)) +
     geom_hline(yintercept = 0.05, color = "black", linetype = "dotted")  + 
     scale_color_manual(breaks = c("PPC",  "Interpolated single 0.5-SPC", "Extrapolated single 0.5-SPC","Interpolated single 0.9-SPC", "Extrapolated single 0.9-SPC"),values=c("#999999", "#0072B2", "#D55E00","#0072B2", "#D55E00")) +
     theme( axis.text.x = element_text(angle = 0),

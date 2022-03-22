@@ -17,9 +17,9 @@ stan_data6 <- function(data_obs, data_new){
                     M_f1=10, # number of basis functions for GP for f1
                     J_f2=20, # number of basis functions for periodic f2
                     day_of_week=data_obs$day_of_week,
-                    day_of_year=data_obs$day_of_year2,
-                    day_of_week_new=data_new$day_of_week,
-                    day_of_year_new=data_new$day_of_year2) # 1st March = 61 every year
+                    day_of_year=data_obs$day_of_year2)
+                  #  day_of_week_new=data_new$day_of_week,
+                  #  day_of_year_new=data_new$day_of_year2) # 1st March = 61 every year
   return(stan_data)
 }
 

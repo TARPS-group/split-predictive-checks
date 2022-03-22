@@ -28,12 +28,13 @@ library(posterior)
 options(pillar.neg = FALSE, pillar.subtle=FALSE, pillar.sigfig=2)
 ```
 
-## Load and plot data
+## Load data and file path to save results
 
 Load birthdays per day in USA 1969-1988:
 
 ```{r }
 root <- has_file("README.md")$make_fix_file()
+source(root("spc/","utils.R"))
 source(root("script/experiments/birthdays","births_funs.R"))
 data <- read_csv(root("script/experiments/birthdays/data", "births_usa_1969.csv"))
 data <- data %>%
@@ -41,6 +42,13 @@ data <- data %>%
          births_relative100 = births/mean(births)*100)
 ```
 
+```{r}
+results <- df <- NULL
+save(results, file = "births_model1_results.rda")
+save(results, file = "births_model6_results.rda")
+save(df, file = "births_model1_pred_data.rda")
+save(df, file = "births_model6_pred_data.rda")
+```
 
 
 ### Model 1: Slow trend
@@ -56,10 +64,10 @@ $$
 ```{r singleSPC}
 source(root("script/experiments/birthdays","births_model1.R"))
   
-single_SPC_births(data, model1, stan_data1, train_prop = 0.5, lag = 30, R = 1000, interpolation = FALSE, path_to_results = "births_model1_results.rda", path_to_rep_data = "births_model1_pred_data.rda")
-single_SPC_births(data, model1, stan_data1, train_prop = 0.5, lag = 30, R = 1000, interpolation = TRUE, path_to_results = "births_model1_results.rda", path_to_rep_data = "births_model1_pred_data.rda")
-# single_SPC_births computes PPC pvalues when train_prop and interpolation is NULL
-single_SPC_births(data, model1, stan_data1, train_prop = NULL, lag = 30, R = 1000, interpolation = "N/A", path_to_results = "births_model1_results.rda", path_to_rep_data = "births_model1_pred_data.rda") 
+single_SPC_births(data, model1, stan_data1, lag = 30, R = 1000, method = "Interpolated single 0.5-SPC", path_to_results = "births_model1_results.rda", path_to_rep_data = "births_model1_pred_data.rda")
+single_SPC_births(data, model1, stan_data1, lag = 30, R = 1000, method = "Extrapolated single 0.5-SPC", path_to_results = "births_model1_results.rda", path_to_rep_data = "births_model1_pred_data.rda")
+# single_SPC_births computes PPC pvalues when train_prop and method is NULL
+single_SPC_births(data, model1, stan_data1, train_prop = NULL, lag = 30, R = 1000, method = "PPC", path_to_results = "births_model1_results.rda", path_to_rep_data = "births_model1_pred_data.rda") 
 
 ```
 
@@ -81,24 +89,24 @@ g_3 \sim \mbox{GP}(0,K_3)\\
 \beta_{\mbox{day of year}} \sim \mbox{normal}(0,0.1)
 $$
 
-Compile Stan model 6 [gpbf6.stan](https://github.com/avehtari/casestudies/blob/master/Birthdays/gpbf6.stan)
+
 
 ```{r model6, results='hide'}
 source(root("script/experiments/birthdays","births_model6.R"))
 
 # compute p-values
-single_SPC_births(data, model6, stan_data6, train_prop = 0.5, lag = 30, 
-                  R = 200, interpolation = FALSE, 
+single_SPC_births(data, model6, stan_data6, lag = 30, 
+                  R = 1000, method = "Interpolated single 0.5-SPC", 
                   path_to_results = "births_model6_results.rda", 
-                  path_to_rep_data = "births_model6_prep_data.rda")
-single_SPC_births(data, model6, stan_data6, train_prop = 0.5, lag = 30, 
-                  R = 200, interpolation = TRUE, 
+                  path_to_rep_data = "births_model6_pred_data.rda")
+single_SPC_births(data, model6, stan_data6, lag = 30, 
+                  R = 1000, method = "Extrapolated single 0.5-SPC", 
                   path_to_results = "births_model6_results.rda", 
-                  path_to_rep_data = "births_model6_prep_data.rda")
+                  path_to_rep_data = "births_model6_pred_data.rda")
 single_SPC_births(data, model6, stan_data6, train_prop = NULL, lag = 30, 
-                  R = 200, interpolation = "N/A", 
+                  R = 1000, method = "PPC", 
                   path_to_results = "births_model6_results.rda", 
-                  path_to_rep_data = "births_model6_prep_data.rda")
+                  path_to_rep_data = "births_model6_pred_data.rda")
 
 ```
 
@@ -111,11 +119,11 @@ load("births_model6_results.rda")
 plot_pvals_lags_combined(results)
 
 load("births_model1_pred_data.rda")
-plot_fit(data, df, train_prop = 0.5, interpolate = FALSE)
-plot_fit(data, df, train_prop = 0.5, interpolate = TRUE)
-load("births_model6_pred_data.rda")
-plot_fit(data, df, train_prop = 0.5, interpolate = FALSE)
-plot_fit(data, df, train_prop = 0.5, interpolate = TRUE)
+plot_fit(data, df,  method = "Interpolated single 0.5-SPC")
+plot_fit(data, df,  method = "Extrapolated single 0.5-SPC")
 
+load("births_model6_pred_data.rda")
+plot_fit(data, df,  method = "Interpolated single 0.5-SPC")
+plot_fit(data, df,  method = "Extrapolated single 0.5-SPC")
 ```
 
