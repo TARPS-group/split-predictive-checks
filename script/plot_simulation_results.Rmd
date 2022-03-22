@@ -7,7 +7,7 @@ output: html_document
 
 ```{r}
 root <- has_file("README.md")$make_fix_file()
-source(root("spc/codes","evaluation.r")) 
+source(root("spc","evaluation.r")) 
 ```
 
 # Poisson Model

@@ -1,9 +1,7 @@
 ### Script for computing SPC p-values and analyzing results for airline delays data ###
 ### Analysis includes tests on a geometric model and negative binomial glm model.
 
-# initialize results path
-results <- NULL
-save(results, file = "nyc_airline_delays_results_geom.rda")
+
 
 
 run_experiment_geom <- function(N_obs, data, discr_name, results_path, R){

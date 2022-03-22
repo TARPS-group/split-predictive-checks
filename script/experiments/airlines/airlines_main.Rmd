@@ -29,13 +29,23 @@ data(flights)
 flights <- flights[complete.cases(flights), ] %>% 
   mutate(date = ISOdate(year, month, day), DayOfWeek = wday(date), 
          Arr_delay = sapply(arr_delay - 15, function(x) ceiling(max(x, 0))))
+flights$ID <- 1:N
 y_nyc <- permute(flights$Arr_delay)
 N <- length(y_nyc)
+
 ```
 
 ```{r load_functions}
-source(root("spc/codes", "utils.r"))
+source(root("spc", "utils.r"))
+source(root("spc", "compute_spcs.r"))
+```
 
+
+```{r}
+# initialize results path
+results <- NULL
+save(results, file = "nyc_airline_delays_results_geom.rda")
+save(results, file = "nyc_airline_delays_results_negbin.rda")
 ```
 
 ## 1. Conjugate geometric model
@@ -44,11 +54,11 @@ source(root("spc/codes", "utils.r"))
 ##                     p ~ Beta(a0, b0)
 # rerun 'run_experiment_geom' for N_obs = 500, 1000, 2000, 3000, 5000
 
-source(root("spc/experiments/airlines","airlines_funs_geom.R"))
+source(root("script/experiments/airlines","airlines_funs_geom.R"))
 run_experiment_geom(N_obs = 500, data = y_nyc, discr_name = "success_rate", 
-                    results_path = "nyc_airline_delays_results_geom.rda", R = 500)
+                    results_path = "nyc_airline_delays_results_geom.rda", R = 1000)
 run_experiment_geom(N_obs = 500, data = y_nyc, discr_name = "mse", 
-                    results_path = "nyc_airline_delays_results_geom.rda", R = 500)
+                    results_path = "nyc_airline_delays_results_geom.rda", R = 1000)
 y_rep_geom <-  generate_yreps_given_obs(y_nyc, R = 1000, N)
 
 
@@ -66,36 +76,14 @@ power_plot_airlines(results, discr = "success_rate")
 model_formula = @formula((ArrDelay-15)~sin(Month/12)+cos(Month/12) + sin(DayOfWeek/7) + cos(DayOfWeek/7) + Distance)
 ```{r}
 ## load functions
-source(root("spc/experiments/airlines","airlines_funs_negbinGLM.R"))
+source(root("script/experiments/airlines","airlines_funs_negbinGLM.R"))
 ```
 
 ```{r}
-
 run_experiment_negbin(flights, discr_name = "success_rate", result_path = "nyc_airline_delays_results_negbin.rda", R = 1000)
 
-
-divide_data_glm <- function(data, rate, interpolation){
-  N <- length(data)
-  N_sub <- floor(N^(1-rate))
-  K <- floor(N^(rate))
-  Xsubs <- list()
-  if(interpolation){
-    data$intid <- c(rep(1:K, N_sub + 1), rep(NA,N%%K))
-    data <- data[1:(K*(N_sub + 1)), ]
-        for(k in 1:K){
-          Xsubs[[k]] <- data[data$intid == k, ]
-        }
-  }else if(!interpolation){
-    for(k in 1:(K-1)){
-    Xsubs[[k]] <- data[((k-1) * N_sub + 1) : (k * N_sub), ]
-    }
-    Xsubs[[K]] <- data[-(1 : ((K-1) * N_sub)), ]
-  }else{
-    stop("Error: missing interpolation type")
-  }
-  return(Xsubs)
-}
-
+load("nyc_airline_delays_results_negbin.rda")
+results
 ```
 
 - Plot histogram comparison between data distribution, posterior predictive distribution under geometric and negative binomial GLM models.

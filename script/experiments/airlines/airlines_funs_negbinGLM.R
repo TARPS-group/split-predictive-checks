@@ -1,7 +1,5 @@
 
-# initialize results path
-results <- NULL
-save(results, file = "nyc_airline_delays_results_negbin.rda")
+
 
 generate_yreps_given_obs <- function(data_obs, data_new, R){
   N_new <- nrow(data_new)
@@ -21,16 +19,16 @@ generate_yreps_given_obs <- function(data_obs, data_new, R){
 
 compute_singleSPC_glm <- function(data, spc_prop, discr_name, interpolation, R){
   discr_fun <- get(discr_name)
-  N <- length(data)
-  if(interpolation){
+  N <- nrow(data)
+  if(interpolation == TRUE){
     held_out <- seq(from = 1, to = N, by = ceiling(1/(1 - spc_prop) ))
     data_obs <- data %>% filter(!ID %in% held_out )
     data_new <- data %>% filter(ID %in% held_out) 
-  }else if(!interpolation){
+  }else if(interpolation == FALSE){
     held_out <- seq(from = floor(N * spc_prop), to = N, by = 1 ) 
     data_obs <- data %>% filter(!ID %in% held_out )
     data_new <- data %>% filter(ID %in% held_out) 
-  }else if(is.null(interpolation)){
+  }else if(interpolation == "N/A"){
     data_obs <- data_new <- data
   }
   
@@ -44,23 +42,32 @@ compute_singleSPC_glm <- function(data, spc_prop, discr_name, interpolation, R){
   return(pval)
 }
 
-divide_data <- function(dataset, rate){
-  discr_fun <- get(discr_name)
-  N <- nrow(dataset)
+
+divide_data_glm <- function(data, rate, interpolation){
+  N <- nrow(data)
+  N_sub <- floor(N^(1-rate))
   K <- floor(N^(rate))
-  N_split <- floor(N/K)
-  data <- list()
-  for(k in 1:(K-1)){
-    data[[k]] <- dataset[((k-1) * N_split + 1) : (k * N_split), ]
+  Xsubs <- list()
+  if(interpolation){
+    data$intid <- c(rep(1:K, N_sub + 1), rep(NA,N%%K))
+    data <- data[1:(K*(N_sub + 1)), ]
+    for(k in 1:K){
+      Xsubs[[k]] <- data[data$intid == k, ]
+    }
+  }else if(!interpolation){
+    for(k in 1:(K-1)){
+      Xsubs[[k]] <- data[((k-1) * N_sub + 1) : (k * N_sub), ]
+    }
+    Xsubs[[K]] <- data[-(1 : ((K-1) * N_sub)), ]
+  }else{
+    stop("Error: missing interpolation type")
   }
-  data[[K]] <- dataset[-(1 : ((K-1) * N_split)), ]
-  return(data)
+  return(Xsubs)
 }
 
 
-
 compute_divided_SPC_glm <- function(data, spc_prop, dspc_rate, discr_name, spc_interpolation, divide_interpolation, R){
-  N <- length(data)
+  N <- nrow(data)
   Xsubs <- divide_data_glm(data, dspc_rate, divide_interpolation)
   K <- floor(N^(rate))
   pvals <- rep(NA, K)
@@ -75,7 +82,7 @@ compute_divided_SPC_glm <- function(data, spc_prop, dspc_rate, discr_name, spc_i
 
 
 run_experiment_negbin <- function(data, discr_name, result_path, R){
-  ppc <- compute_singleSPC_glm(flights, spc_prop = NULL, discr_name, interpolation = NULL, R = R)
+  ppc <- compute_singleSPC_glm(flights, spc_prop = NULL, discr_name, interpolation = "N/A", R = R)
   singleSPC_int <- compute_singleSPC_glm(flights, spc_prop = 0.5, discr_name , interpolation = TRUE, R = R)
   singleSPC_ext <- compute_singleSPC_glm(flights, spc_prop = 0.5, discr_name, interpolation = FALSE, R = R)
   intdivided_intSPC <- compute_divided_SPC_glm(flights, spc_prop = 0.5, dspc_rate = 0.49, discr_name, spc_interpolation = TRUE, divide_interpolation = TRUE, R = R)

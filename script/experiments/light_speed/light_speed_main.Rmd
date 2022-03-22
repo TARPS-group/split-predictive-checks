@@ -18,19 +18,29 @@ library(gtools)
 theme_set(bayesplot::theme_default(base_family = "sans"))
 library(patchwork)
 root <- has_file("README.md")$make_fix_file()
-source(root("spc/codes", "utils.r"))
-source(root("spc/experiments/light_speed", "light_model.R"))
+
+```
+
+```{r}
+# load data
+data(light)  
+light <- permute(light)
+
+# load functions
+source(root("spc", "utils.r"))
+source(root("spc", "compute_spcs.r"))
+source(root("script/experiments/light_speed", "light_model.R"))
+```
+
+```{r}
+# load file path to results
 results <- NULL
 save(results, file = "light_model_results.rda")
 save(results, file = "test.rda")
 ```
 
-
-
 ```{r}
-data(light)  
-light <- permute(light)
-mod <- stan_model(root("spc/experiments/light_speed","light_speed_model.stan"))
+mod <- stan_model(root("script/experiments/light_speed","light_speed_model.stan"))
 run_experiment_light(data = light, model = mod, discr_name = "emp_mean", 
                      data_path = "light_model_results.rda", R = 5000, iter = 1000)
 run_experiment_light(data = light, model = mod, discr_name = "sd", 
@@ -41,7 +51,6 @@ run_experiment_light(data = light, model = mod, discr_name = "quantile_0.05",
                      data_path = "light_model_results.rda", R = 5000, iter = 1000)
 run_experiment_light(data = light, model = mod, discr_name = "quantile_0.95", 
                      data_path = "light_model_results.rda", R = 5000, iter = 1000)
-
 ```
 
 

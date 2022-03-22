@@ -7,10 +7,10 @@ library(rstan)
 library("rprojroot")
 rstan_options(auto_write=TRUE)
 root <- has_file("README.md")$make_fix_file()
-source(root("spc/codes", "utils.r"))
-source(root("spc/codes", "generate_pvals.r"))
-source(root("spc/codes", "compute_spcs.r"))
-source(root("spc/codes", "compute_spcs_hierarchical.r"))
+source(root("spc", "utils.r"))
+source(root("spc", "generate_pvals.r"))
+source(root("spc", "compute_spcs.r"))
+source(root("spc", "compute_spcs_hierarchical.r"))
 
 ####### Initialize data file paths to store results ####### 
 updated_data <- NULL
@@ -18,7 +18,10 @@ save(updated_data, file = "poisson_model.rda")
 save(updated_data, file = "poisson_model_ess.rda")
 save(updated_data, file = "poisson_mismatch_comparison.rda")
 save(updated_data, file = "gaussian_model.rda")
-save(updated_data, file = "test.rda")
+save(updated_data, file = "hier_well_specified.rda")
+save(updated_data, file = "hier_cr_jeff.rda")
+save(updated_data, file = "hier_wi_gr_var.rda")
+save(updated_data, file = "hier_wi_lognorm.rda")
 
 
 #######  I. Poisson model ####### 
