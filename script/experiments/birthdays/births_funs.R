@@ -56,6 +56,7 @@ single_SPC_births <- function(data, model, stan_data_fun, train_prop = 0.5, lag 
   }
   
   pvals <- pvals/R
+  pvals <- sapply(pvals, function(x) 2 * min(x, 1-x))
   lag_labels <- sapply(seq(0, lag, by = 1), toString)
   
   # also store the last copy of fitted values
