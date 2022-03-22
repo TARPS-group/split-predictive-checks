@@ -20,6 +20,7 @@ generate_yreps_given_obs <- function(data_obs, data_new, R){
 compute_singleSPC_glm <- function(data, spc_prop, discr_name, interpolation, R){
   discr_fun <- get(discr_name)
   N <- nrow(data)
+  data$ID <- 1:N
   if(interpolation == TRUE){
     held_out <- seq(from = 1, to = N, by = ceiling(1/(1 - spc_prop) ))
     data_obs <- data %>% filter(!ID %in% held_out )
@@ -35,10 +36,10 @@ compute_singleSPC_glm <- function(data, spc_prop, discr_name, interpolation, R){
   N_new <- nrow(data_new)
   y_reps <- matrix(generate_yreps_given_obs(data_obs, data_new, R = R), R, N_new)
   y_new <- data_new$Arr_delay
-  d_rep <- apply(y_reps, 1, function(y) discr_fun(y))
   d_new <- discr_fun(y_new)
+  d_rep <- apply(y_reps, 1, function(y) discr_fun(y))
   pval <- mean(d_rep < d_new)
-  
+  pval <- 2*min(pval, 1- pval)
   return(pval)
 }
 
@@ -82,9 +83,9 @@ compute_divided_SPC_glm <- function(data, spc_prop, dspc_rate, discr_name, spc_i
 
 
 run_experiment_negbin <- function(data, discr_name, result_path, R){
-  ppc <- compute_singleSPC_glm(flights, spc_prop = NULL, discr_name, interpolation = "N/A", R = R)
-  singleSPC_int <- compute_singleSPC_glm(flights, spc_prop = 0.5, discr_name , interpolation = TRUE, R = R)
-  singleSPC_ext <- compute_singleSPC_glm(flights, spc_prop = 0.5, discr_name, interpolation = FALSE, R = R)
+ ppc <- compute_singleSPC_glm(flights, spc_prop = NULL, discr_name, interpolation = "N/A", R = R)
+ singleSPC_int <- compute_singleSPC_glm(flights, spc_prop = 0.5, discr_name , interpolation = TRUE, R = R)
+ singleSPC_ext <- compute_singleSPC_glm(flights, spc_prop = 0.5, discr_name, interpolation = FALSE, R = R)
   intdivided_intSPC <- compute_divided_SPC_glm(flights, spc_prop = 0.5, dspc_rate = 0.49, discr_name, spc_interpolation = TRUE, divide_interpolation = TRUE, R = R)
   intdivided_extSPC <- compute_divided_SPC_glm(flights, spc_prop = 0.5, dspc_rate = 0.49, discr_name, spc_interpolation = FALSE, divide_interpolation = TRUE, R = R)
   load(result_path) 

@@ -29,7 +29,6 @@ data(flights)
 flights <- flights[complete.cases(flights), ] %>% 
   mutate(date = ISOdate(year, month, day), DayOfWeek = wday(date), 
          Arr_delay = sapply(arr_delay - 15, function(x) ceiling(max(x, 0))))
-flights$ID <- 1:N
 y_nyc <- permute(flights$Arr_delay)
 N <- length(y_nyc)
 
@@ -80,7 +79,7 @@ source(root("script/experiments/airlines","airlines_funs_negbinGLM.R"))
 ```
 
 ```{r}
-run_experiment_negbin(flights, discr_name = "success_rate", result_path = "nyc_airline_delays_results_negbin.rda", R = 1000)
+run_experiment_negbin(flights, discr_name = "success_rate", result_path = "nyc_airline_delays_results_negbin.rda", R = 100)
 
 load("nyc_airline_delays_results_negbin.rda")
 results
