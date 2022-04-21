@@ -31,7 +31,7 @@ eval_checks <- function(data, discr_name, model_name = ""){
     geom_point(position = pd) + geom_line(position = pd, size = 0.8)  + ylim(0,1) +
     geom_errorbar(aes(ymin=ts_or_power - ci, ymax=ts_or_power + ci), width=.1, position=pd) +
     labs( y = "power", x = "number of observations", color = "method", linetype = "method")+ 
-    scale_color_manual(breaks = c("Pop-PC ideal", "PPC", 
+    scale_color_manual(breaks = c("POP-PC-v1", "PPC", 
                                   "single 0.1-SPC", "single 0.3-SPC", "single 0.5-SPC","single 0.7-SPC", "single 0.9-SPC", 
                                   "divided 0.1-SPC", "divided 0.3-SPC", "divided 0.5-SPC","divided 0.7-SPC", "divided 0.9-SPC", 
                                   "divided 0.9-SPC, k = N^(.4)", "divided 0.5-SPC, k = N^(.4)",
@@ -47,7 +47,7 @@ eval_checks <- function(data, discr_name, model_name = ""){
              "#6633FF","#6633FF",
              "#6699FF", "#6699FF"
     )) + 
-    scale_linetype_manual(breaks = c("Pop-PC ideal", "PPC", 
+    scale_linetype_manual(breaks = c("POP-PC-v1", "PPC", 
                                      "single 0.1-SPC", "single 0.3-SPC", "single 0.5-SPC","single 0.7-SPC", "single 0.9-SPC", 
                                      "divided 0.1-SPC", "divided 0.3-SPC", "divided 0.5-SPC","divided 0.7-SPC", "divided 0.9-SPC", 
                                      "divided 0.9-SPC, k = N^(.4)", "divided 0.5-SPC, k = N^(.4)",
@@ -100,7 +100,7 @@ eval_checks <- function(data, discr_name, model_name = ""){
     geom_errorbar(aes(ymin=ts_or_power - ci, ymax=ts_or_power + ci), width=.1, position=pd) +
     labs(y = "test size", x = "number of observations", color = "method", linetype = "method") + 
     geom_abline(slope = 0, intercept = 0.05, linetype = "dashed") +
-    scale_color_manual(breaks = c("Pop-PC ideal", "PPC", 
+    scale_color_manual(breaks = c("POP-PC-v1", "PPC", 
                                   "single 0.1-SPC", "single 0.3-SPC", "single 0.5-SPC","single 0.7-SPC", "single 0.9-SPC", 
                                   "divided 0.1-SPC", "divided 0.3-SPC", "divided 0.5-SPC","divided 0.7-SPC", "divided 0.9-SPC", 
                                   "divided 0.9-SPC, k = N^(.4)", "divided 0.5-SPC, k = N^(.4)",
@@ -116,7 +116,7 @@ eval_checks <- function(data, discr_name, model_name = ""){
              "#6633FF","#6633FF",
              "#6699FF", "#6699FF"
     )) + 
-    scale_linetype_manual(breaks = c("Pop-PC ideal", "PPC", 
+    scale_linetype_manual(breaks = c("POP-PC-v1", "PPC", 
                                      "single 0.1-SPC", "single 0.3-SPC", "single 0.5-SPC","single 0.7-SPC", "single 0.9-SPC", 
                                      "divided 0.1-SPC", "divided 0.3-SPC", "divided 0.5-SPC","divided 0.7-SPC", "divided 0.9-SPC", 
                                      "divided 0.9-SPC, k = N^(.4)", "divided 0.5-SPC, k = N^(.4)",
@@ -223,7 +223,7 @@ eval_checks_clean_mismatch <- function(data, discr_name, model_name = "", iter =
     geom_errorbar(aes(ymin=ts_or_power - ci, ymax=ts_or_power + ci), width=.3, position = pd)+
     # labs( y = "power", x = expression(rho^2), color = "method", shape = "size") + 
     labs( y = "power", x = x_lab_name, color = "method", shape = "size") + 
-    scale_color_manual(breaks = c("Pop-PC ideal", "PPC", 
+    scale_color_manual(breaks = c("POP-PC-v1", "PPC", 
                                   "single 0.5-SPC", "divided 0.5-SPC", "True single 0.5-SPC"),
                        values=c("#330000","#0000FF" , 
                                 "#009999", "#FF9900", "red")) + 
@@ -315,7 +315,7 @@ size_plot_hier_fixJ_clean <- function(data, discr_name, iter = 200){
     geom_errorbar(aes(ymin=ts_or_power - ci, ymax=ts_or_power + ci), width=.8, position=pd) + facet_wrap(~as.factor(rename_J)) +
     labs(y = "test size", color = "method", x = "number of groups", linetype = "method") +
     # scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x)))+
-    scale_color_manual(breaks = c("Pop-PC ideal", "PPC", 
+    scale_color_manual(breaks = c("POP-PC-v1", "PPC", 
                                   "single 0.3-crossSPC", "single 0.5-crossSPC",
                                   "single 0.3-withinSPC","single 0.5-withinSPC",
                                   "within-divided 0.5-crossSPC","cross-divided 0.5-crossSPC",
@@ -325,7 +325,7 @@ size_plot_hier_fixJ_clean <- function(data, discr_name, iter = 200){
                                 "#0072B2", "#0072B2",
                                 "#D55E00", "#D55E00",
                                 "#CC79A7","#CC79A7")) + 
-    scale_linetype_manual(breaks = c("Pop-PC ideal", "PPC", 
+    scale_linetype_manual(breaks = c("POP-PC-v1", "PPC", 
                                      "single 0.3-crossSPC", "single 0.5-crossSPC",
                                      "single 0.3-withinSPC","single 0.5-withinSPC",
                                      "within-divided 0.5-crossSPC","cross-divided 0.5-crossSPC",
@@ -394,7 +394,7 @@ eval_checks_hier_fixJ_clean <- function(data, discr_name, iter = 200){
                linetype = as.factor(method))) + geom_point(position = pd) + 
     geom_errorbar(aes(ymin = ts_or_power - ci, ymax = ts_or_power + ci), position = pd, width=1.2) + 
     geom_line(size = 0.6,position = pd) +  facet_wrap(~as.factor(discr_fun)) +
-    scale_color_manual(breaks = c("Pop-PC ideal", "PPC", 
+    scale_color_manual(breaks = c("POP-PC-v1", "PPC", 
                                   "single 0.5-crossSPC",
                                   "single 0.5-withinSPC",
                                   "within-divided 0.5-crossSPC","cross-divided 0.5-crossSPC",
@@ -404,7 +404,7 @@ eval_checks_hier_fixJ_clean <- function(data, discr_name, iter = 200){
                                 "#0072B2",
                                 "#D55E00", "#D55E00",
                                 "#CC79A7","#CC79A7")) + 
-    scale_linetype_manual(breaks = c("Pop-PC ideal", "PPC", 
+    scale_linetype_manual(breaks = c("POP-PC-v1", "PPC", 
                                      "single 0.5-crossSPC", "single 0.5-withinSPC",
                                      "within-divided 0.5-crossSPC","cross-divided 0.5-crossSPC",
                                      "within-divided 0.5-withinSPC","cross-divided 0.5-withinSPC"),
@@ -488,7 +488,7 @@ eval_checks_hier_fixI_clean <- function(data, discr_name, iter = 200){
                linetype = as.factor(method))) + geom_point(position = pd) + 
     geom_errorbar(aes(ymin = ts_or_power - ci, ymax = ts_or_power + ci), position = pd, width=1.2) + 
     geom_line(size = 0.6,position = pd) +  facet_wrap(~as.factor(discr_fun)) +
-    scale_color_manual(breaks = c("Pop-PC ideal", "PPC", 
+    scale_color_manual(breaks = c("POP-PC-v1", "PPC", 
                                   "single 0.3-crossSPC", "single 0.5-crossSPC",
                                   "single 0.3-withinSPC","single 0.5-withinSPC",
                                   "within-divided 0.5-crossSPC","cross-divided 0.5-crossSPC",
@@ -498,7 +498,7 @@ eval_checks_hier_fixI_clean <- function(data, discr_name, iter = 200){
                                 "#0072B2", "#0072B2",
                                 "#D55E00", "#D55E00",
                                 "#CC79A7","#CC79A7")) + 
-    scale_linetype_manual(breaks = c("Pop-PC ideal", "PPC", 
+    scale_linetype_manual(breaks = c("POP-PC-v1", "PPC", 
                                      "single 0.3-crossSPC", "single 0.5-crossSPC",
                                      "single 0.3-withinSPC","single 0.5-withinSPC",
                                      "within-divided 0.5-crossSPC","cross-divided 0.5-crossSPC",
@@ -576,7 +576,7 @@ eval_checks_hier_fixI_clean <- function(data, discr_name, iter = 200){
           
 qq_plot_comparison <- function(data, discr_name, model_name = "", iter = 1000){
   data$method_f= factor(data$method, 
-                        levels=c('Pop-PC ideal', 'PPC','single 0.9-SPC','single 0.5-SPC',
+                        levels=c('POP-PC-v1', 'PPC','single 0.9-SPC','single 0.5-SPC',
                                  'divided 0.9-SPC','divided 0.7-SPC','divided 0.5-SPC',
                                  'divided 0.3-SPC','divided 0.1-SPC'))
   bs_plot <- data %>% 
@@ -591,23 +591,41 @@ qq_plot_comparison <- function(data, discr_name, model_name = "", iter = 1000){
   
   qq_plot_legend <- bs_plot +
     theme(
+      # legend.position = c(0.9, 0.25),
+      # legend.position = c(0.85, 0.6),  # gaussian mse power
+      # legend.key.size = unit(0.32, "cm"),
       panel.background = element_rect(fill = "white", colour = NA),
-      strip.background =element_rect(fill="white"),
+      strip.background =element_rect(fill= NA, colour = "black"),
+      strip.text = element_text(size = 12, colour = "black"),
       axis.line = element_line(size = 0.25),
       panel.border = element_blank(),
+      axis.title = element_text(size = 16, color = "black"),
+      axis.text = element_text(size = 12, color = "black"),
       axis.ticks = element_blank(),
+      legend.title = element_text(size = 12, color = "black"),
+      legend.text = element_text(size = 12, color = "black"),
       legend.key=element_blank(),
-      legend.background = element_rect(color = "grey", fill = "white"))
+      legend.background = element_rect(color = "grey", fill = "white"),
+      # legend.title = element_blank()
+    )
   
   qq_plot <- bs_plot +
     theme(
       legend.position = "none",
+      # legend.position = c(0.85, 0.6),  # gaussian mse power
+      # legend.key.size = unit(0.32, "cm"),
       panel.background = element_rect(fill = "white", colour = NA),
-      strip.background =element_rect(fill="white"),
+      strip.background =element_rect(fill= NA, colour = "black"),
+      strip.text = element_text(size = 12, colour = "black"),
+      axis.line = element_line(size = 0.25),
       panel.border = element_blank(),
+      axis.title = element_text(size = 16, color = "black"),
+      axis.text = element_text(size = 12, color = "black"),
       axis.ticks = element_blank(),
+      #legend.text = element_text(size = 12, color = "black"),
       legend.key=element_blank(),
       legend.background = element_rect(fill = "white"),
+      # legend.title = element_blank()
     )
   
   
@@ -615,11 +633,12 @@ qq_plot_comparison <- function(data, discr_name, model_name = "", iter = 1000){
 }
 
 
+
 ## qq_plot_comparison_hier:  hierachical models
 ## discr_names include "grand_mean", "max_group_means", "mean_group_q75"
 
 qq_plot_comparison_hier <- function(data, fixed_num_of_indi, discr_name, iter = 200){
-   base <- data %>% 
+  base <- data %>% 
     filter(model == "well-specified", discr_fun == discr_name, num_of_indi == fixed_num_of_indi) %>% 
     group_by(num_of_groups, method) %>% 
     mutate(unifcdf = 1: iter/(iter + 1), order_pvals = sort(pvals)) %>% 
@@ -627,34 +646,40 @@ qq_plot_comparison_hier <- function(data, fixed_num_of_indi, discr_name, iter = 
     geom_line(size = 1) + geom_abline(slope = 1, intercept = 0, color = "grey") +
     labs(color = "number of groups", y = "p-values") + ylim(0,1) + xlim(0,1) +
     facet_wrap(~as.factor(method)) 
-   qq_plot <- base + 
-     theme(
-       legend.position = "none", 
-       panel.background = element_rect(fill = "white", colour = NA),
-       strip.background =element_rect(fill="white"),
-       axis.line = element_line(size = 0.5),
-       axis.title = element_text(size = 14, color = "black"),
-       axis.text = element_text(size = 12, color = "black"),
-       axis.ticks = element_blank(),
-       legend.text = element_text(size = 12, color = "black"),
-       legend.key=element_blank(),
-       legend.background = element_rect(color = "grey", fill = "white")
-     )  
+  qq_plot <- base + 
+    theme(
+      legend.position = "none",
+      # legend.position = c(0.85, 0.6),  # gaussian mse power
+      # legend.key.size = unit(0.32, "cm"),
+      panel.background = element_rect(fill = "white", colour = NA),
+      strip.background =element_rect(fill= NA, colour = "black"),
+      strip.text = element_text(size = 12, colour = "black"),
+      axis.line = element_line(size = 0.25),
+      panel.border = element_blank(),
+      axis.title = element_text(size = 16, color = "black"),
+      axis.text = element_text(size = 12, color = "black"),
+      axis.ticks = element_blank(),
+      #legend.text = element_text(size = 12, color = "black"),
+      legend.key=element_blank(),
+      legend.background = element_rect(fill = "white"),
+    )  
   qq_plot_legend <- base + 
     theme(
       # legend.position = "bottom", 
       panel.background = element_rect(fill = "white", colour = NA),
-      strip.background =element_rect(fill="white"),
-      axis.line = element_line(size = 0.5),
-      axis.title = element_text(size = 14, color = "black"),
+      strip.background =element_rect(fill= NA, colour = "black"),
+      strip.text = element_text(size = 12, colour = "black"),
+      axis.line = element_line(size = 0.25),
+      panel.border = element_blank(),
+      axis.title = element_text(size = 16, color = "black"),
       axis.text = element_text(size = 12, color = "black"),
       axis.ticks = element_blank(),
+      legend.title = element_text(size = 12, color = "black"),
       legend.text = element_text(size = 12, color = "black"),
       legend.key=element_blank(),
-      legend.background = element_rect(color = "grey", fill = "white")
+      legend.background = element_rect(color = "grey", fill = "white"),
     )  
- 
+  
   return(list(qq_plot, qq_plot_legend))
   
 }
-

@@ -50,10 +50,10 @@ eval_checks(updated_data, discr_name = "mse", model_name = "Poisson model")
 ```
 
 
-- Compare `Pop-PC`, `PPC`, `single 0.5-SPC`, `divided 0.5-SPC` power/ test size
+- Compare `Pop-PC-v1`, `PPC`, `single 0.5-SPC`, `divided 0.5-SPC` power/ test size
 ```{r}
 load("poisson_model.rda")
-updated_data <- updated_data %>% filter(method %in% c("PPC", "Pop-PC ideal", "single 0.5-SPC", "divided 0.5-SPC"))
+updated_data <- updated_data %>% filter(method %in% c("PPC", "POP-PC-v1", "single 0.5-SPC", "divided 0.5-SPC"))
 eval_checks(updated_data, discr_name = "emp_mean", model_name = "Poisson model")
 eval_checks(updated_data, discr_name = "sec_moment",model_name = "Poisson model")
 eval_checks(updated_data, discr_name = "third_moment",model_name = "Poisson model")
@@ -123,7 +123,7 @@ eval_checks(updated_data, discr_name = "mse",  model_name = "Gaussian model")
 - Compare `Pop-PC`, `PPC`, `single 0.9-SPC`, `divided 0.9-SPC` power/ test size
 ```{r}
 load("gaussian_model.rda")
-updated_data <- updated_data %>% filter(method %in% c("PPC", "Pop-PC ideal", "single 0.5-SPC", "divided 0.5-SPC"))
+updated_data <- updated_data %>% filter(method %in% c("PPC", "POP-PC-v1", "single 0.5-SPC", "divided 0.5-SPC"))
 eval_checks(updated_data, discr_name = "emp_mean",  model_name = "Gaussian model")
 eval_checks(updated_data, discr_name = "quantile_0.75",  model_name = "Gaussian model")
 eval_checks(updated_data, discr_name = "sec_moment",  model_name = "Gaussian model")

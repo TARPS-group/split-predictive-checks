@@ -95,7 +95,7 @@ run_experiment <- function(N, iter, data = NULL, discr_fun_name, file_path, miss
          
          size_of_data <- 16 * iter
          new_data_frame <- tibble(size = rep(N, size_of_data),
-                                  method = c(rep("PPC", iter), rep("Pop-PC ideal", iter), 
+                                  method = c(rep("PPC", iter), rep("POP-PC-v1", iter), 
                                              rep("single 0.1-SPC", iter), rep("single 0.3-SPC", iter), rep("single 0.5-SPC", iter), rep("single 0.7-SPC", iter), rep("single 0.9-SPC", iter),
                                              rep("divided 0.1-SPC", iter), rep("divided 0.3-SPC", iter), rep("divided 0.5-SPC", iter), rep("divided 0.7-SPC", iter), rep("divided 0.9-SPC", iter),
                                              rep("divided 0.5-SPC, k = N^(.4)", iter), rep("divided 0.5-SPC, k = N^(.49)", iter),
@@ -160,7 +160,7 @@ run_experiment_rho <- function(N, data = NULL, discr_fun_name, file_name, disper
    
    size_of_data <- 4 * iter
    new_data_frame <- tibble(size = rep(N, size_of_data),
-                            method = c(rep("PPC", iter), rep("Pop-PC ideal", iter), 
+                            method = c(rep("PPC", iter), rep("POP-PC-v1", iter), 
                                        rep("single 0.5-SPC", iter), rep("divided 0.5-SPC", iter)),
                             discr_fun = rep(discr_fun_name, size_of_data), 
                             pvals =  c(ppc, pop_pc, spc_0.5, d_spc_0.5),
@@ -245,7 +245,7 @@ run_single_experiment_ess_pois <- function(N, iter, data = NULL, r_theory, theta
    new_data_frame <- tibble(size = rep(N, size_of_data),
                             prior_beta = rep(beta, size_of_data),
                             prior_beta = rep(alpha, size_of_data),
-                            method = c(rep("PPC", iter), rep("Pop-PC ideal", iter), rep("single 0.5-SPC", iter), rep("divided 0.5-SPC", iter)),
+                            method = c(rep("PPC", iter), rep("POP-PC-v1", iter), rep("single 0.5-SPC", iter), rep("divided 0.5-SPC", iter)),
                             discr_fun = rep(discr_fun_name, size_of_data), 
                             pvals =  c(ppc, pop_pc, spc_0.5, d_spc_0.5),
                             true_theta = rep(theta_star, size_of_data),
