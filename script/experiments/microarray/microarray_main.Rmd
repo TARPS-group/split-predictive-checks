@@ -1,0 +1,315 @@
+---
+title: "microarray_main"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(posterior)
+library(bayesplot)
+library(tibble)
+library(dplyr) 
+library(tidyr)
+library(matrixStats)
+library(rstan)
+library(purrr)
+library(patchwork)
+
+rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
+library("sda")
+```
+
+
+
+```{r}
+# load Singh et al (2001) data set
+data(singh2002)
+X_all <- singh2002$x    # 102 x ~6033
+y_factor <- singh2002$y
+
+# Convert outcomes to 0/1
+y_all <- as.integer(y_factor == levels(y_factor)[1])
+N <- nrow(X_all)
+P <- ncol(X_all)
+cat("Loaded data: N =", N, "P =", P, "\n")
+
+# keep top 500 genes by variance
+gene_var <- colVars(X_all)    # matrixStats::colVars
+keep <- order(gene_var, decreasing = TRUE)[1:500]
+X_small <- X_all[, keep]
+
+```
+
+
+```{r}
+predict_random <- function(X_new, posterior_draws) {
+  # X_new: N_new x P
+
+  N_new <- nrow(X_new)
+  S <- length(posterior_draws$alpha)
+  
+  lp <- posterior_draws$alpha + X_new %*% t(posterior_draws$beta) 
+  p <- 1 / (1 + exp(-lp))
+  
+  u <- matrix(runif(N_new * S), nrow = N_new, ncol = S)
+  y_pred <- (u < p) * 1  # 0/1 matrix
+  
+  return(y_pred)
+}
+
+predict_with_p <- function(X_new, posterior_draws) {
+  N_new <- nrow(X_new)
+  S <- length(posterior_draws$alpha)
+  
+  lp <- posterior_draws$alpha + X_new %*% t(posterior_draws$beta)
+  p_mat <- 1 / (1 + exp(-lp))
+  
+  u <- matrix(runif(N_new * S), nrow = N_new, ncol = S)
+  y_pred <- (u < p_mat) * 1
+  return(list("y_pred" = y_pred, "p" = p_mat))
+}
+
+log_loss <- function(y, p) {
+  eps <- 1e-15 
+  p <- pmin(pmax(p, eps), 1 - eps)
+  sum( - (y * log(p) + (1 - y) * log(1 - p)))
+}
+```
+
+```{r, ppc}
+stan_file <- "horseshoe_logit_singh.stan"
+sm <- stan_model(stan_file)
+
+stan_data_all <- list(
+  N = nrow(X_small),
+  P = ncol(X_small),
+  X = X_small,
+  y = y_all
+)
+
+fit <- sampling(
+  sm,
+  data = stan_data_all,
+  chains = 1,
+  iter = 2000,
+  warmup = 1000,
+  seed = 123,
+  control = list(adapt_delta = 0.9, max_treedepth = 12),
+  refresh = 0
+)
+
+y_rep <- predict_random(X_small, draws)  # generate new predictive samples
+
+mean_obs <- mean(y_all)
+mean_rep <- colMeans(y_rep)
+ppc_pval <- mean(mean_rep > mean_obs)
+
+load("microarray_results.rda")
+results <- bind_rows(results, tibble(
+  pval = 2*pmin(ppc_pval, 1-ppc_pval),
+  method = "PPC"
+))
+save(results, file="microarray_results.rda")
+
+
+
+```
+
+
+
+
+```{r, spc for prediction}
+# split by id to keep the temporal order
+
+# Train/test split
+
+ix_cancer <- which(y_all == 1)
+ix_healthy <- which(y_all == 0)
+
+train_ix <- c(ix_healthy[0:floor(N/4)+1], ix_cancer[0:floor(N/4)+1] )
+test_ix <- setdiff(1:nrow(X_small), train_ix)
+
+X_train <- X_small[train_ix, , drop = FALSE]
+y_train <- y_all[train_ix]
+X_test  <- X_small[test_ix, , drop = FALSE]
+y_test  <- y_all[test_ix]
+
+stan_data <- list(
+  N = nrow(X_train),
+  P = ncol(X_train),
+  X = X_train,
+  y = y_train
+)
+
+# Fit the model
+fit_spc <- sampling(sm,
+                data = stan_data,
+                chains = 1,
+                iter = 4000,
+                warmup = 2000,
+                seed = 123,
+                control = list(adapt_delta = 0.9, max_treedepth = 12))
+
+
+# Posterior predictions
+draws <- rstan::extract(fit_spc, permuted = TRUE)
+y_rep <- predict_random(X_test, draws)
+
+# SPC p-value
+mean_test <- mean(y_test)
+mean_rep <- colMeans(y_rep)
+spc_pval <- mean(mean_rep >= mean_test)
+
+# Save to results tibble
+load("microarray_results.rda")
+results <- bind_rows(results, tibble(
+  pval = 2*pmin(spc_pval,1-spc_pval),
+  method = "SPC"
+))
+save(results, file="microarray_results.rda")
+
+```
+
+
+
+```{r,  spc for self-consistency}
+
+# Stratified train/test split
+train_frac <- 0.5
+
+ix_cancer <- which(y_all == 1)
+ix_healthy <- which(y_all == 0)
+
+train_cancer  <- sample(ix_cancer,  size = floor(length(ix_cancer)  * train_frac))
+train_healthy <- sample(ix_healthy, size = floor(length(ix_healthy) * train_frac))
+
+train_ix <- c(train_cancer, train_healthy)
+test_ix  <- setdiff(seq_along(y_all), train_ix)
+
+X_train <- X_small[train_ix, , drop = FALSE]
+y_train <- y_all[train_ix]
+X_test  <- X_small[test_ix, , drop = FALSE]
+y_test  <- y_all[test_ix]
+
+
+
+# Stan data for this tau
+stan_data <- list(
+  N = nrow(X_train),
+  P = ncol(X_train),
+  X = X_train,
+  y = y_train
+)
+
+# Fit the model
+fit <- sampling(sm,
+                data = stan_data,
+                chains = 1,
+                iter = 2000,
+                warmup = 1000,
+                seed = 123,
+                control = list(adapt_delta = 0.9, max_treedepth = 12))
+
+
+# Posterior predictions
+draws <- rstan::extract(fit, permuted = TRUE)
+y_rep <- predict_random(X_test, draws)
+
+# SPC p-value
+mean_test <- mean(y_test)
+mean_rep <- colMeans(y_rep)
+spc_pval <- mean(mean_rep >= mean_test)
+
+load("microarray_results.rda")
+# Save to results tibble
+results <- bind_rows(results, tibble(
+  pval = spc_pval,
+  method = "SPC (self-consistency)"
+))
+save(results, file = "microarray_results.rda")
+
+
+```
+
+
+```{r, prior pc}
+stan_file <- "horseshoe_logit_singh.stan"
+sm <- stan_model(stan_file)
+
+# Prepare Stan data
+stan_data_all <- list(
+  N = nrow(X_small),
+  P = ncol(X_small),
+  X = X_small,
+  y = y_all
+)
+
+fit_prior <- sampling(
+  sm,
+  data = stan_data_all,
+  chains = 1,
+  iter = 2000,
+  warmup = 0,
+  algorithm = "Fixed_param",
+  seed = 123,
+  refresh = 0
+)
+
+
+draws_prior <- rstan::extract(fit_prior, permuted = TRUE)
+y_prior_rep <- draws_prior$y_prior_rep  
+
+mean_obs <- mean(y_all)
+mean_rep <- rowMeans(y_prior_rep)
+
+prior_ppc <- mean(mean_rep >= mean_obs)
+
+# Save
+load("microarray_results.rda")
+
+results <- bind_rows(
+  results,
+  tibble(
+    pval = 2 * min(prior_ppc, 1 - prior_ppc),
+    method = "Prior PC"
+  )
+)
+save(results, file = "microarray_results.rda")
+```
+
+
+
+
+
+```{r, hjort ppp}
+
+# Extract posterior draws
+draws <- rstan::extract(fit, permuted = TRUE)
+
+# Posterior predictive samples
+y_rep <- predict_random(X_small, draws)
+
+# Raw one-sided posterior predictive p-value
+mean_obs <- mean(y_all)
+mean_rep <- colMeans(y_rep)
+
+combined <- c(mean_obs, mean_rep)
+
+# Rank them
+ranks <- rank(combined)
+
+# Observed rank is the first element
+rank_obs <- ranks[1]
+
+# Hjort post-processed p-value
+ppc_hjort <- rank_obs / (length(mean_rep) + 1)
+
+load("microarray_results.rda")
+results <- bind_rows(results, tibble(
+  pval =  2 * min(ppc_hjort, 1 - ppc_hjort),
+  method = "PPC (Hjort)"
+))
+# Save updated results
+save(results, file = "microarray_results.rda")
+
+

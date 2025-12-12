@@ -13,12 +13,9 @@ To reproduce results for section 5, see [script/simulation_main.r](https://githu
 
 To reproduce plots in section 5, see [script/plot_simulation_results.Rmd](https://github.com/TARPS-group/split-predictive-checks/blob/main/script/plot_simulation_results.Rmd)
 
-For results and plots in section 6.1, see [~/experiments/light_speed/ light_speed_main.Rmd](https://github.com/TARPS-group/split-predictive-checks/blob/main/script/experiments/light_speed/light_speed_main.Rmd)
+For results and plots in section 6.1, see [~/experiments/microarray/ microarray_main.Rmd](https://github.com/TARPS-group/split-predictive-checks/blob/main/script/experiments/microarray/microarray_main.Rmd)
 
 For results and plots in section 6.2 & 6.3, see [~/experiments/airlines/ airlines_main.Rmd](https://github.com/TARPS-group/split-predictive-checks/blob/main/script/experiments/airlines/airlines_main.Rmd)
-
-For results and plots in section 6.4, see [~/experiments/birthdays/ births_main.Rmd](https://github.com/TARPS-group/split-predictive-checks/blob/main/script/experiments/birthdays/births_main.Rmd)
-
 
 For basic spc functions, see [spc/](https://github.com/TARPS-group/split-predictive-checks/tree/main/spc) directory.
 

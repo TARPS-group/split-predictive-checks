@@ -1,0 +1,433 @@
+---
+title: "airline_main"
+output: html_document
+---
+```{r}
+library(nycflights13)
+library(dplyr)
+library(brms)
+library(tidyr)
+library(ggplot2)
+library(bayesplot)
+library(posterior)
+```
+
+```{r}
+flights
+```
+
+
+```{r}
+set.seed(123)  # for reproducibility
+flights_sampled_ten <- flights %>%
+  filter(!is.na(arr_delay), !is.na(dep_delay)) %>%
+  mutate(
+    month = factor(month),
+    day = factor(day),
+    hour = factor(hour)
+  ) %>%
+  sample_frac(0.1) # random sample 10% of data
+flights_sampled_ten
+```
+
+```{r}
+# utility functions to compute p-value
+
+rmse <- function(y, yhat) sqrt(mean((y - yhat)^2))
+
+ppc_pvalue <- function(model, data, test_stat = mean) {
+  y <- data$arr_delay
+  yrep <- posterior_predict(model, newdata = data)
+  rmse_val  <- rmse(data$arr_delay, yrep)
+  if (identical(test_stat, "MSE")) {
+    yhat <- colMeans(yrep)   # N × S → rowMeans gives N
+    T_y <- mean((y - yhat)^2)
+
+    # for each posterior draw s, compute MSE:
+    # yrep[, s] is vector of length N
+    T_yrep <- apply(yrep, 1, function(yrep_s) {
+      mean((yrep_s - yhat)^2)
+    })
+  } else {
+    # generic test statistic (mean, sd, max, etc.)
+    T_y <- test_stat(y)
+    T_yrep <- apply(yrep, 1, test_stat)  # use columns as draws
+  }
+  # Bayesian p-value
+  pval <- mean(T_yrep >= T_y)
+
+  return(list("pval"=2*pmin(pval,1-pval), "rmse"=rmse_val))
+}
+
+
+spc_pvalue <- function(model, test_data, test_stat = mean) {
+  y <- test_data$arr_delay
+  yrep <- posterior_predict(model, newdata = test_data, allow_new_levels = TRUE, sample_new_levels = "gaussian")
+  rmse_val  <- rmse(test_data$arr_delay, yrep)
+
+  if (identical(test_stat, "MSE")) {
+    yhat <- colMeans(yrep)   # N × S → rowMeans gives N
+    T_y <- mean((y - yhat)^2)
+
+    # for each posterior draw s, compute MSE:
+    # yrep[, s] is vector of length N
+    T_yrep <- apply(yrep, 1, function(yrep_s) {
+      mean((yrep_s - yhat)^2)
+    })
+  } else {
+    # generic test statistic (mean, sd, max, etc.)
+    T_y <- test_stat(y)
+    T_yrep <- apply(yrep, 1, test_stat)  # use columns as draws
+  }
+
+  # Bayesian p-value
+  pval <- mean(T_yrep >= T_y)
+
+  return(list("pval"=2*pmin(pval,1-pval), "rmse"=rmse_val))
+}
+
+prior_ppc_pvalue <- function(model, data, test_stat = mean) {
+  y <- data$arr_delay
+  
+  yrep <- posterior_predict(model, newdata = data, sample_prior = "only")
+  if (identical(test_stat, "MSE")) {
+    yhat <- colMeans(yrep)   # N × S → rowMeans gives N
+    T_y <- mean((y - yhat)^2)
+
+    # for each posterior draw s, compute MSE:
+    # yrep[, s] is vector of length N
+    T_yrep <- apply(yrep, 1, function(yrep_s) {
+      mean((yrep_s - yhat)^2)
+    })
+  } else {
+    # generic test statistic (mean, sd, max, etc.)
+    T_y <- test_stat(y)
+    T_yrep <- apply(yrep, 1, test_stat)  # use columns as draws
+  }
+  
+  pval <- mean(T_yrep >= T_y)
+  return(2 * pmin(pval, 1 - pval))
+}
+
+
+hjort_postprocessed_ppc <- function(model, data, test_stat = mean) {
+  y <- data$arr_delay
+  
+  # Posterior predictive draws
+  yrep <- posterior_predict(model, newdata = data)  # draws x N
+    if (identical(test_stat, "MSE")) {
+    yhat <- colMeans(yrep)   # N × S → rowMeans gives N
+    T_y <- mean((y - yhat)^2)
+
+    # for each posterior draw s, compute MSE:
+    # yrep[, s] is vector of length N
+    T_yrep <- apply(yrep, 1, function(yrep_s) {
+      mean((yrep_s - yhat)^2)
+    })
+  } else {
+    # generic test statistic (mean, sd, max, etc.)
+    T_y <- test_stat(y)
+    T_yrep <- apply(yrep, 1, test_stat)  # use columns as draws
+  }
+
+  # Hjort et al. post-processing:
+  # 1. Compute CDF of T_yrep under each posterior predictive draw
+  # 2. Average the CDF evaluations to get post-processed p-value
+  pval <- mean(rank(c(T_y, T_yrep))[-1] / (length(T_yrep) + 1))  # empirical CDF
+  
+  return(2 * pmin(pval, 1 - pval))
+}
+
+```
+
+
+
+```{r}
+data_df <- flights_sampled_ten
+```
+
+
+## MODEL SETUP: Time generalizable model
+
+```{r}
+
+# Basic model for PPC, PPC (Hjort) and Prior PC
+data_df$month_num <- as.numeric(data_df$month)  
+data_df$cos_month <- cos(data_df$month_num / (12 * pi))
+data_df$sin_month <- sin(data_df$month_num / (12 * pi))
+
+m_month_overfit_ppc <- brm(
+  arr_delay ~ dep_delay + distance +
+    cos_month +
+    sin_month,
+  data = data_df,
+  family = gaussian(),
+  chains = 1,
+  cores = 1,
+  prior = c(
+    prior(normal(0, 5), class = "Intercept"),
+    prior(normal(0, 1), class = "b")   # applies to all slopes
+  ),
+  control = list(adapt_delta = 0.95)
+)
+```
+
+```{r}
+# Model for SPC
+train_time <- data_df %>%
+  filter(month != "12")
+
+test_time <- data_df %>%
+  filter(month == "12")
+
+
+
+m_month_overfit_spc <- brm(
+  arr_delay ~ dep_delay + distance +
+    cos_month +
+    sin_month,
+  data = train_time,
+  family = gaussian(),
+  chains = 1,
+  cores = 1,
+  prior = c(
+    prior(normal(0, 5), class = "Intercept"),
+    prior(normal(0, 1), class = "b")   # applies to all slopes
+  ),
+  control = list(adapt_delta = 0.95)
+)
+
+```
+
+```{r}
+### PPC
+
+load("airline_pvals_overfit.rda")
+  ppc_time <- ppc_pvalue(m_month_overfit_ppc, data_df, test_stat="MSE")
+  results <- bind_rows(results, tibble(
+      pval = ppc_time$pval,
+      method = "PPC",
+      scenario = "Future Data",
+      diagnostic="MSE"
+    ))
+  save(results,file="airline_pvals_overfit.rda")
+  
+  
+### SPC for time generalization
+
+load("airline_pvals_overfit.rda")
+spc_p_time<- spc_pvalue(m_month_overfit_spc, test_time, test_stat="MSE")
+results <- bind_rows(results, tibble(
+    pval = spc_p_time$pval,
+    method = "SPC",
+    scenario = "Future Data",
+          diagnostic="MSE"
+  ))
+
+save(results,file="airline_pvals_overfit.rda")
+
+load("airline_eval_overfit.rda")
+eval_results <- bind_rows(eval_results, tibble(
+  pval = spc_p_time$rmse,
+  scenario = "Future Data",
+  metric = "RMSE",
+  model = "Model 1 (smooth time)"
+))
+save(results,file="airline_eval_overfit.rda")
+
+
+### Prior PC
+load("airline_pvals_overfit.rda")
+p_val <- prior_ppc_pvalue(m_month_overfit_ppc_v2, data_df, test_stat="MSE")
+results <- bind_rows(results, tibble(
+    pval = p_val,
+    method = "Prior PC",
+    scenario = "Future Data",
+    diagnostic="MSE"
+  ))
+save(results,file="airline_pvals_overfit.rda")
+  
+
+### PPC (Hjort)
+
+load("airline_pvals_overfit.rda")
+p_val <- hjort_postprocessed_ppc(m_month_overfit_ppc_v2, data_df, test_stat="MSE")
+results <- bind_rows(results, tibble(
+  pval = p_val,
+  method = "PPC (Hjort)",
+  scenario = "Future Data",
+      diagnostic="MSE"
+))
+save(results,file="airline_pvals_overfit.rda")
+```
+
+
+
+## MODEL SETUP: Dest generalizable model
+
+
+```{r}
+# Model for PPC
+m_dest_overfit_ppc <- brm(
+  arr_delay ~ dep_delay + distance + (1 | dest),
+  data = data_df,
+  family = gaussian(),
+  chains = 2, cores = 2,
+  prior = c(
+    prior(normal(0, 10), class = "Intercept"),   # wide prior for intercept
+    prior(normal(0, 10), class = "b"),           # wide prior for fixed effects
+    prior(student_t(3, 0, 10), class = "sd")     # heavy-tailed prior for random effect SDs
+  ),
+  control = list(adapt_delta = 0.95)
+)
+
+
+# Model for SPC
+heldout_airport <- "AKL"
+
+train_dest <- flights_sampled_ten %>% filter(dest != heldout_airport)
+test_dest  <- flights_sampled_ten %>% filter(dest == heldout_airport)
+
+m_dest_overfit_spc <- brm(
+  arr_delay ~ dep_delay + distance + (1 | dest),
+  data = train_dest,
+  family = gaussian(),
+  chains = 2, cores = 2,
+  prior = c(
+    prior(normal(0, 10), class = "Intercept"),   # wide prior for intercept
+    prior(normal(0, 10), class = "b"),           # wide prior for fixed effects
+    prior(student_t(3, 0, 10), class = "sd")     # heavy-tailed prior for random effect SDs
+  ),
+  control = list(adapt_delta = 0.95)
+)
+
+
+```
+
+
+
+```{r}
+### PPC
+
+load("airline_pvals_overfit.rda")
+ppc_dest <- ppc_pvalue(m_dest_overfit_ppc, data_df, test_stat = variance)
+results <- bind_rows(results, tibble(
+    pval = ppc_dest$pval,
+    method = "PPC",
+    model = "Model 3",
+    diagnostic = "Variance",
+    scenario = "Unseen Destination"
+  ))
+save(results,file="airline_pvals_overfit.rda")
+
+
+### Prior PC
+
+load("airline_pvals_overfit.rda")
+p_val <- prior_ppc_pvalue(m_dest_overfit_ppc, data_df, test_stat = variance)
+results <- bind_rows(results, tibble(
+    pval = p_val,
+    method = "Prior PC",
+    diagnostic = "Variance",
+    scenario = "Unseen Destination"
+  ))
+save(results,file="airline_pvals_overfit.rda")
+
+
+
+### PPC (Hjort)
+
+load("airline_pvals_overfit.rda")
+p_val <- hjort_postprocessed_ppc(m_dest_overfit_ppc, data_df, test_stat = variance)
+results <- bind_rows(results, tibble(
+    pval = p_val,
+    method = "PPC (Hjort)",
+    diagnostic = "Variance",
+    scenario = "Unseen Destination"
+  ))
+save(results,file="airline_pvals_overfit.rda")
+
+
+### SPC for dest
+
+load("airline_pvals_overfit.rda")
+spc_p_dest<- spc_pvalue(m_dest_overfit_spc, test_dest, test_stat=variance)
+results <- bind_rows(results, tibble(
+    pval = spc_p_dest$pval,
+    method = "SPC",
+    diagnostic = "Variance",
+    scenario = "Unseen Destination"
+  ))
+
+save(results,file="airline_pvals_overfit.rda")
+
+load("airline_eval_overfit.rda")
+eval_results <- bind_rows(eval_results, tibble(
+  pval = spc_p_dest$rmse,
+  scenario = "Unseen Destination",
+  metric = "RMSE",
+))
+
+save(eval_results,file="airline_eval_overfit.rda")
+  
+
+```
+
+
+### Plot graphical checks
+
+
+```{r}
+library(ggplot2)
+
+# Create a dummy variable for faceting
+df <- data.frame(T_rep = T_yrep, facet = "Time generalization model, diagnostic = Mean")
+
+# Compute histogram max for annotation
+hist_counts <- hist(T_yrep, breaks = 30, plot = FALSE)
+y_pos <- max(hist_counts$counts) * 0.8
+
+p1 <- ggplot(df, aes(x = T_rep)) +
+  geom_histogram(
+    bins = 30,
+    fill = "#69b3a2",
+    color = "black",
+    alpha = 0.8
+  ) +
+  geom_vline(xintercept = T_y, color = "red", linetype = "solid", size = 1) +
+  annotate(
+    "text",
+    x = T_y + 0.05 * diff(range(T_yrep)),
+    y = y_pos,
+    label = expression(T[obs]),
+    color = "red",
+    angle = 0,
+    hjust = 0,
+    size = 8
+  ) +
+  labs(
+    x = expression(T[pred]),
+    y = "Frequency"
+  ) +
+  facet_wrap(~facet, scales = "free_x") +  # facet gives the “title on top” style
+  theme_minimal(base_size = 16) +
+  theme(
+    strip.background = element_rect(fill = "white", color = NA),
+    strip.text = element_text(face = "bold", size = 18),
+    panel.background = element_rect(fill = "white", colour = NA),
+    axis.line = element_line(size = 0.5),
+    axis.title = element_text(face = "bold"),
+    axis.text = element_text(color = "black"),
+    axis.ticks = element_blank()
+  )
+
+ggsave("airline_dest_hist_variance.pdf",
+       plot = p1,
+       width = 8,
+       height = 5,
+       dpi = 300)
+
+
+p1
+```
+
