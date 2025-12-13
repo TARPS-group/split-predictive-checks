@@ -10,7 +10,6 @@
 
 
 # gaussian <- list("true_pars" = list("mu" = 0, "sigma" = 1), "mis_par" = 3)    
-source("generate_pvals.r")
 
 para_mod <- list("mu" = NA, "sigma" = 1)
 
@@ -57,10 +56,10 @@ run_gaussian_model <- function(sizes, data_path, discr_name, iter = 200){
   dat <- updated_data
   for(i in 1: length(sizes)){
     dat <- run_experiment(N = sizes[i], iter = iter, data = dat,
-                                 discr_fun_name = discr_name, file_name = data_path,
+                                 discr_fun_name = discr_name, file_path = data_path,
                                  misspecified = FALSE)(mu0 = 0, sigma0 = 10000)
     dat <- run_experiment(N = sizes[i], iter = iter, data = dat,
-                                 discr_fun_name = discr_name, file_name = data_path,
+                                 discr_fun_name = discr_name, file_path = data_path,
                                  misspecified = TRUE)(mu0 = 0, sigma0 = 10000)
   }
 }

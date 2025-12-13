@@ -9,7 +9,7 @@
 #   misspecified case:   Xij ~ N(theta_i, 4), i = 1,...,I   j = 1, ..., J
 #                        theta_i ~ gamma(0.6, 0.2)
 
-source("generate_pvals.r")
+
 library(MASS)
 library(rstan)
 rstan_options(auto_write=TRUE)

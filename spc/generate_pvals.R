@@ -31,7 +31,6 @@ run_experiment <- function(N, iter, data = NULL, discr_fun_name, file_path, miss
          model_type = "well-specified"
       }
       
-         pop_pc <- rep(0, iter)
          ppc <- rep(0, iter)
          
          spc_0.1 <- rep(0, iter)
@@ -55,8 +54,6 @@ run_experiment <- function(N, iter, data = NULL, discr_fun_name, file_path, miss
             obs_data <- simulate_data(N)
             X_obs <- obs_data$X_obs
             
-            pop_pc[i] <- as.numeric(compute_pop_pc_ideal(X_obs, para_mod,dist_fun = ind_dis,
-                                                         discr_fun = discr_fun, R = 500)(...))
             ppc[i] <- as.numeric(compute_ppc(X_obs, para_mod, dist_fun = ind_dis,
                                              discr_fun = discr_fun, R = 500)(...))
             
@@ -93,16 +90,16 @@ run_experiment <- function(N, iter, data = NULL, discr_fun_name, file_path, miss
 
          }
          
-         size_of_data <- 16 * iter
+         size_of_data <- 15 * iter
          new_data_frame <- tibble(size = rep(N, size_of_data),
-                                  method = c(rep("PPC", iter), rep("POP-PC-v1", iter), 
+                                  method = c(rep("PPC", iter), 
                                              rep("single 0.1-SPC", iter), rep("single 0.3-SPC", iter), rep("single 0.5-SPC", iter), rep("single 0.7-SPC", iter), rep("single 0.9-SPC", iter),
                                              rep("divided 0.1-SPC", iter), rep("divided 0.3-SPC", iter), rep("divided 0.5-SPC", iter), rep("divided 0.7-SPC", iter), rep("divided 0.9-SPC", iter),
                                              rep("divided 0.5-SPC, k = N^(.4)", iter), rep("divided 0.5-SPC, k = N^(.49)", iter),
                                              rep("divided 0.5-SPC, k = N^(.6)", iter), rep("divided 0.5-SPC, k = N^(.8)", iter)),
                                    model = rep(model_type, size_of_data), 
                                    discr_fun = rep(discr_fun_name, size_of_data), 
-                                   pvals = c(ppc, pop_pc, spc_0.1, spc_0.3, spc_0.5, spc_0.7, spc_0.9,
+                                   pvals = c(ppc, spc_0.1, spc_0.3, spc_0.5, spc_0.7, spc_0.9,
                                              d_spc_0.1, d_spc_0.3, d_spc_0.5, d_spc_0.7, d_spc_0.9,
                                              d_spc_0.5_.4, d_spc_0.5_.49, d_spc_0.5_.6, d_spc_0.5_.8))
    
@@ -140,15 +137,12 @@ run_experiment_rho <- function(N, data = NULL, discr_fun_name, file_name, disper
       
    
    ppc <- rep(0, iter)
-   pop_pc <- rep(0, iter)
    spc_0.5 <- rep(0, iter)
    dspc_0.5 <- rep(0, iter)
    
    for(i in 1:iter){
       X_obs <- simulate_data(N)
  
-      pop_pc[i] <- as.numeric(compute_pop_pc_ideal(X_obs, para_mod,dist_fun = ind_dis,
-                                                   discr_fun = discr_fun, R = 500)(...))
       ppc[i] <- as.numeric(compute_ppc(X_obs, para_mod, dist_fun = ind_dis,
                                        discr_fun = discr_fun, R = 500)(...))
       spc_0.5[i] <- as.numeric(compute_singleSPC(X_obs, para_mod, dist_fun = ind_dis, discr_fun = discr_fun,
@@ -158,12 +152,12 @@ run_experiment_rho <- function(N, data = NULL, discr_fun_name, file_name, disper
       
    }
    
-   size_of_data <- 4 * iter
+   size_of_data <- 3 * iter
    new_data_frame <- tibble(size = rep(N, size_of_data),
-                            method = c(rep("PPC", iter), rep("POP-PC-v1", iter), 
+                            method = c(rep("PPC", iter),
                                        rep("single 0.5-SPC", iter), rep("divided 0.5-SPC", iter)),
                             discr_fun = rep(discr_fun_name, size_of_data), 
-                            pvals =  c(ppc, pop_pc, spc_0.5, d_spc_0.5),
+                            pvals =  c(ppc, spc_0.5, d_spc_0.5),
                             rho_squared = rep(rho_squared, size_of_data)) 
    
    updated_data <- rbind(new_data_frame, data)
@@ -217,7 +211,6 @@ run_single_experiment_ess_pois <- function(N, iter, data = NULL, r_theory, theta
                     maximum = FALSE, tol = 1e-06)$minimum
    
    ppc <- rep(0, iter)
-   pop_pc <- rep(0, iter)
    spc_0.5 <- rep(0, iter)
    dspc_0.5 <- rep(0, iter)
    
@@ -230,8 +223,6 @@ run_single_experiment_ess_pois <- function(N, iter, data = NULL, r_theory, theta
       Ndspc <- floor((2*N)^(1/0.51))
       X_obs_Ndspc <- simulate_data(Ndspc, theta_star)
       
-      pop_pc[i] <- as.numeric(compute_pop_pc_ideal(X_obs_Nppc, para_mod,dist_fun = ind_dis,
-                                                   discr_fun = discr_fun, R = 500)(a0 = alpha, b0 = beta))
       ppc[i] <- as.numeric(compute_ppc(X_obs_Nppc, para_mod, dist_fun = ind_dis,
                                        discr_fun = discr_fun, R = 500)(a0 = alpha, b0 = beta))
       spc_0.5[i] <- as.numeric(compute_singleSPC(X_obs_Nspc, para_mod, dist_fun = ind_dis, discr_fun = discr_fun,
@@ -241,13 +232,13 @@ run_single_experiment_ess_pois <- function(N, iter, data = NULL, r_theory, theta
       
    }
    
-   size_of_data <- 4 * iter
+   size_of_data <- 3 * iter
    new_data_frame <- tibble(size = rep(N, size_of_data),
                             prior_beta = rep(beta, size_of_data),
                             prior_beta = rep(alpha, size_of_data),
-                            method = c(rep("PPC", iter), rep("POP-PC-v1", iter), rep("single 0.5-SPC", iter), rep("divided 0.5-SPC", iter)),
+                            method = c(rep("PPC", iter), rep("single 0.5-SPC", iter), rep("divided 0.5-SPC", iter)),
                             discr_fun = rep(discr_fun_name, size_of_data), 
-                            pvals =  c(ppc, pop_pc, spc_0.5, d_spc_0.5),
+                            pvals =  c(ppc, spc_0.5, d_spc_0.5),
                             true_theta = rep(theta_star, size_of_data),
                             quantile = rep(quantile, size_of_data))
    
@@ -282,7 +273,6 @@ run_experiment_hier <- function(I, J, iter, data = NULL, discr_fun_name, file_pa
          model_type = "well-specified"
       }
 
-         pop_pc <- rep(0, iter)
          ppc <- rep(0, iter)
          spc_0.5cross <- rep(0, iter)
          spc_0.5within <- rep(0, iter)
@@ -295,7 +285,6 @@ run_experiment_hier <- function(I, J, iter, data = NULL, discr_fun_name, file_pa
             obs_data <- simulate_data(I, J)
             X_obs <- obs_data$X_obs
              
-            pop_pc[i] <- as.numeric(compute_pop_pc_ideal_hier(X_obs, para_mod, dist_fun = ind_dis, discr_fun = discr_fun, R = R))
             ppc[i] <- as.numeric(compute_ppc_hier(X_obs, para_mod,dist_fun = ind_dis,  discr_fun = discr_fun, R = R))
            
             spc_0.5cross[i] <- as.numeric(compute_singleSPC_hier(X_obs, para_mod, discr_fun,dist_fun = ind_dis, spc_prop = 0.5, R = R, cross_split = TRUE))
@@ -312,10 +301,10 @@ run_experiment_hier <- function(I, J, iter, data = NULL, discr_fun_name, file_pa
             
          }
          
-         size_of_data <- 8 * iter
+         size_of_data <- 7 * iter
          new_data_frame <- tibble( num_of_groups = rep(I, size_of_data),
                                    num_of_indi = rep(J, size_of_data),
-                                   method = c(rep("Pop-PC", iter), rep("PPC", iter), 
+                                   method = c( rep("PPC", iter), 
                                               rep("single 0.5-crossSPC", iter), rep("single 0.5-withinSPC", iter),
                                               rep("cross-divided 0.5-crossSPC", iter), 
                                               rep("within-divided 0.5-crossSPC", iter), 
@@ -323,7 +312,7 @@ run_experiment_hier <- function(I, J, iter, data = NULL, discr_fun_name, file_pa
                                               rep("cross-divided 0.5-withinSPC", iter)), 
                                    model = rep(model_type, size_of_data), 
                                    discr_fun = rep(discr_fun_name, size_of_data), 
-                                   pvals = c(pop_pc, ppc, spc_0.5cross, spc_0.5within,
+                                   pvals = c(ppc, spc_0.5cross, spc_0.5within,
                                              crdiv_0.5_crSPC, widiv_0.5_crSPC, widiv_0.5_wiSPC , crdiv_0.5_wiSPC))
          
          updated_data <- rbind(new_data_frame, data)

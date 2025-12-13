@@ -51,10 +51,10 @@ run_poisson_model <- function(sizes, data_path, discr_name, iter = 200){
   dat <- updated_data
   for(i in 1: length(sizes)){
     dat <- run_experiment(N = sizes[i], iter = iter, data = dat,
-                                   discr_fun_name = discr_name,file_name = data_path,
+                                   discr_fun_name = discr_name,file_path = data_path,
                                    misspecified = FALSE)(a0 = 0.1, b0 = 0.2)
     dat <- run_experiment(N = sizes[i], iter = iter, data = dat, 
-                                   discr_fun_name = discr_name,file_name = data_path,
+                                   discr_fun_name = discr_name,file_path = data_path,
                                    misspecified = TRUE)(a0 = 0.1, b0 = 0.2)
   }
 }

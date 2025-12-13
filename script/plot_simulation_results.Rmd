@@ -7,7 +7,7 @@ output: html_document
 
 ```{r}
 root <- has_file("README.md")$make_fix_file()
-source(root("spc","evaluation.r")) 
+source(root("spc","evaluation.R")) 
 ```
 
 # Poisson Model
@@ -50,7 +50,7 @@ eval_checks(updated_data, discr_name = "mse", model_name = "Poisson model")
 ```
 
 
-- Compare `Pop-PC-v1`, `PPC`, `single 0.5-SPC`, `divided 0.5-SPC` power/ test size
+- Compare `PPC`, `single 0.5-SPC`, `divided 0.5-SPC` power/ test size
 ```{r}
 load("poisson_model.rda")
 updated_data <- updated_data %>% filter(method %in% c("PPC", "POP-PC-v1", "single 0.5-SPC", "divided 0.5-SPC"))
