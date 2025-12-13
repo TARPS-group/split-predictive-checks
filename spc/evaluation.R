@@ -31,7 +31,7 @@ eval_checks <- function(data, discr_name, model_name = ""){
     geom_point(position = pd) + geom_line(position = pd, size = 0.8)  + ylim(0,1) +
     geom_errorbar(aes(ymin=ts_or_power - ci, ymax=ts_or_power + ci), width=.1, position=pd) +
     labs( y = "power", x = "number of observations", color = "method", linetype = "method")+ 
-    scale_color_manual(breaks = c("POP-PC-v1", "PPC", 
+    scale_color_manual(breaks = c("PPC", 
                                   "single 0.1-SPC", "single 0.3-SPC", "single 0.5-SPC","single 0.7-SPC", "single 0.9-SPC", 
                                   "divided 0.1-SPC", "divided 0.3-SPC", "divided 0.5-SPC","divided 0.7-SPC", "divided 0.9-SPC", 
                                   "divided 0.9-SPC, k = N^(.4)", "divided 0.5-SPC, k = N^(.4)",
@@ -39,7 +39,7 @@ eval_checks <- function(data, discr_name, model_name = ""){
                                   "divided 0.9-SPC, k = N^(.6)", "divided 0.5-SPC, k = N^(.6)",
                                   "divided 0.9-SPC, k = N^(.8)", "divided 0.5-SPC, k = N^(.8)"
     ),
-    values=c("#666666","#0000FF" , 
+    values=c("#0000FF" , 
              "#009999", "#FF9900","#D55E00" , "#6699FF", "#666666",
              "#6699FF", "#FF9900", "#009999", "#666666", "#D55E00",
              "#666666","#666666",
@@ -47,7 +47,7 @@ eval_checks <- function(data, discr_name, model_name = ""){
              "#6633FF","#6633FF",
              "#6699FF", "#6699FF"
     )) + 
-    scale_linetype_manual(breaks = c("POP-PC-v1", "PPC", 
+    scale_linetype_manual(breaks = c( "PPC", 
                                      "single 0.1-SPC", "single 0.3-SPC", "single 0.5-SPC","single 0.7-SPC", "single 0.9-SPC", 
                                      "divided 0.1-SPC", "divided 0.3-SPC", "divided 0.5-SPC","divided 0.7-SPC", "divided 0.9-SPC", 
                                      "divided 0.9-SPC, k = N^(.4)", "divided 0.5-SPC, k = N^(.4)",
@@ -55,7 +55,7 @@ eval_checks <- function(data, discr_name, model_name = ""){
                                      "divided 0.9-SPC, k = N^(.6)", "divided 0.5-SPC, k = N^(.6)",
                                      "divided 0.9-SPC, k = N^(.8)", "divided 0.5-SPC, k = N^(.8)"
     ),
-    values = c("solid", "solid", 
+    values = c( "solid", 
                "solid", "solid", "solid", "solid","solid",
                "solid", "solid", "solid", "solid","solid",
                "solid", "solid", "solid", "solid",
@@ -100,7 +100,7 @@ eval_checks <- function(data, discr_name, model_name = ""){
     geom_errorbar(aes(ymin=ts_or_power - ci, ymax=ts_or_power + ci), width=.1, position=pd) +
     labs(y = "test size", x = "number of observations", color = "method", linetype = "method") + 
     geom_abline(slope = 0, intercept = 0.05, linetype = "dashed") +
-    scale_color_manual(breaks = c("POP-PC-v1", "PPC", 
+    scale_color_manual(breaks = c( "PPC", 
                                   "single 0.1-SPC", "single 0.3-SPC", "single 0.5-SPC","single 0.7-SPC", "single 0.9-SPC", 
                                   "divided 0.1-SPC", "divided 0.3-SPC", "divided 0.5-SPC","divided 0.7-SPC", "divided 0.9-SPC", 
                                   "divided 0.9-SPC, k = N^(.4)", "divided 0.5-SPC, k = N^(.4)",
@@ -108,7 +108,7 @@ eval_checks <- function(data, discr_name, model_name = ""){
                                   "divided 0.9-SPC, k = N^(.6)", "divided 0.5-SPC, k = N^(.6)",
                                   "divided 0.9-SPC, k = N^(.8)", "divided 0.5-SPC, k = N^(.8)"
     ),
-    values=c("#666666","#0000FF" , 
+    values=c("#0000FF" , 
              "#009999", "#FF9900","#D55E00" , "#6699FF", "#666666",
              "#6699FF", "#FF9900", "#009999", "#666666", "#D55E00",
              "#666666","#666666",
@@ -116,7 +116,7 @@ eval_checks <- function(data, discr_name, model_name = ""){
              "#6633FF","#6633FF",
              "#6699FF", "#6699FF"
     )) + 
-    scale_linetype_manual(breaks = c("POP-PC-v1", "PPC", 
+    scale_linetype_manual(breaks = c( "PPC", 
                                      "single 0.1-SPC", "single 0.3-SPC", "single 0.5-SPC","single 0.7-SPC", "single 0.9-SPC", 
                                      "divided 0.1-SPC", "divided 0.3-SPC", "divided 0.5-SPC","divided 0.7-SPC", "divided 0.9-SPC", 
                                      "divided 0.9-SPC, k = N^(.4)", "divided 0.5-SPC, k = N^(.4)",
@@ -124,7 +124,7 @@ eval_checks <- function(data, discr_name, model_name = ""){
                                      "divided 0.9-SPC, k = N^(.6)", "divided 0.5-SPC, k = N^(.6)",
                                      "divided 0.9-SPC, k = N^(.8)", "divided 0.5-SPC, k = N^(.8)"
     ),
-    values = c("solid", "solid", 
+    values = c("solid", 
                "solid", "solid", "solid", "solid","solid",
                "solid", "solid", "solid", "solid","solid",
                "solid", "solid", "solid", "solid",
@@ -223,9 +223,9 @@ eval_checks_clean_mismatch <- function(data, discr_name, model_name = "", iter =
     geom_errorbar(aes(ymin=ts_or_power - ci, ymax=ts_or_power + ci), width=.3, position = pd)+
     # labs( y = "power", x = expression(rho^2), color = "method", shape = "size") + 
     labs( y = "power", x = x_lab_name, color = "method", shape = "size") + 
-    scale_color_manual(breaks = c("POP-PC-v1", "PPC", 
+    scale_color_manual(breaks = c("PPC", 
                                   "single 0.5-SPC", "divided 0.5-SPC", "True single 0.5-SPC"),
-                       values=c("#330000","#0000FF" , 
+                       values=c("#0000FF" , 
                                 "#009999", "#FF9900", "red")) + 
     scale_shape_manual(values = c(17, 16, 15,18),
                        labels = c("1000", "10000", "50000", "100000")) +
@@ -315,22 +315,22 @@ size_plot_hier_fixJ_clean <- function(data, discr_name, iter = 200){
     geom_errorbar(aes(ymin=ts_or_power - ci, ymax=ts_or_power + ci), width=.8, position=pd) + facet_wrap(~as.factor(rename_J)) +
     labs(y = "test size", color = "method", x = "number of groups", linetype = "method") +
     # scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x)))+
-    scale_color_manual(breaks = c("POP-PC-v1", "PPC", 
+    scale_color_manual(breaks = c( "PPC", 
                                   "single 0.3-crossSPC", "single 0.5-crossSPC",
                                   "single 0.3-withinSPC","single 0.5-withinSPC",
                                   "within-divided 0.5-crossSPC","cross-divided 0.5-crossSPC",
                                   "within-divided 0.5-withinSPC","cross-divided 0.5-withinSPC"),
-                       values=c("#999999", "#E69F00", 
+                       values=c( "#E69F00", 
                                 "#009E73", "#009E73",
                                 "#0072B2", "#0072B2",
                                 "#D55E00", "#D55E00",
                                 "#CC79A7","#CC79A7")) + 
-    scale_linetype_manual(breaks = c("POP-PC-v1", "PPC", 
+    scale_linetype_manual(breaks = c( "PPC", 
                                      "single 0.3-crossSPC", "single 0.5-crossSPC",
                                      "single 0.3-withinSPC","single 0.5-withinSPC",
                                      "within-divided 0.5-crossSPC","cross-divided 0.5-crossSPC",
                                      "within-divided 0.5-withinSPC","cross-divided 0.5-withinSPC"),
-                          values = c("solid", "solid", "dotted", "solid", 
+                          values = c("solid", "dotted", "solid", 
                                      "dotted", "solid", "dotted", "solid",
                                      "dotted", "solid"
                           ))
@@ -394,17 +394,17 @@ eval_checks_hier_fixJ_clean <- function(data, discr_name, iter = 200){
                linetype = as.factor(method))) + geom_point(position = pd) + 
     geom_errorbar(aes(ymin = ts_or_power - ci, ymax = ts_or_power + ci), position = pd, width=1.2) + 
     geom_line(size = 0.6,position = pd) +  facet_wrap(~as.factor(discr_fun)) +
-    scale_color_manual(breaks = c("POP-PC-v1", "PPC", 
+    scale_color_manual(breaks = c( "PPC", 
                                   "single 0.5-crossSPC",
                                   "single 0.5-withinSPC",
                                   "within-divided 0.5-crossSPC","cross-divided 0.5-crossSPC",
                                   "within-divided 0.5-withinSPC","cross-divided 0.5-withinSPC"),
-                       values=c("#999999", "#E69F00", 
+                       values=c( "#E69F00", 
                                 "#009E73",
                                 "#0072B2",
                                 "#D55E00", "#D55E00",
                                 "#CC79A7","#CC79A7")) + 
-    scale_linetype_manual(breaks = c("POP-PC-v1", "PPC", 
+    scale_linetype_manual(breaks = c( "PPC", 
                                      "single 0.5-crossSPC", "single 0.5-withinSPC",
                                      "within-divided 0.5-crossSPC","cross-divided 0.5-crossSPC",
                                      "within-divided 0.5-withinSPC","cross-divided 0.5-withinSPC"),
@@ -488,22 +488,22 @@ eval_checks_hier_fixI_clean <- function(data, discr_name, iter = 200){
                linetype = as.factor(method))) + geom_point(position = pd) + 
     geom_errorbar(aes(ymin = ts_or_power - ci, ymax = ts_or_power + ci), position = pd, width=1.2) + 
     geom_line(size = 0.6,position = pd) +  facet_wrap(~as.factor(discr_fun)) +
-    scale_color_manual(breaks = c("POP-PC-v1", "PPC", 
+    scale_color_manual(breaks = c( "PPC", 
                                   "single 0.3-crossSPC", "single 0.5-crossSPC",
                                   "single 0.3-withinSPC","single 0.5-withinSPC",
                                   "within-divided 0.5-crossSPC","cross-divided 0.5-crossSPC",
                                   "within-divided 0.5-withinSPC","cross-divided 0.5-withinSPC"),
-                       values=c("#999999", "#E69F00", 
+                       values=c("#E69F00", 
                                 "#009E73", "#009E73",
                                 "#0072B2", "#0072B2",
                                 "#D55E00", "#D55E00",
                                 "#CC79A7","#CC79A7")) + 
-    scale_linetype_manual(breaks = c("POP-PC-v1", "PPC", 
+    scale_linetype_manual(breaks = c( "PPC", 
                                      "single 0.3-crossSPC", "single 0.5-crossSPC",
                                      "single 0.3-withinSPC","single 0.5-withinSPC",
                                      "within-divided 0.5-crossSPC","cross-divided 0.5-crossSPC",
                                      "within-divided 0.5-withinSPC","cross-divided 0.5-withinSPC"),
-                          values = c("solid", "solid", "solid", "solid", 
+                          values = c( "solid", "solid", "solid", 
                                      "solid", "solid", "dotted", "solid",
                                      "dotted", "solid"
                           )) 
@@ -576,7 +576,7 @@ eval_checks_hier_fixI_clean <- function(data, discr_name, iter = 200){
           
 qq_plot_comparison <- function(data, discr_name, model_name = "", iter = 1000){
   data$method_f= factor(data$method, 
-                        levels=c('POP-PC-v1', 'PPC','single 0.9-SPC','single 0.5-SPC',
+                        levels=c('PPC','single 0.9-SPC','single 0.5-SPC',
                                  'divided 0.9-SPC','divided 0.7-SPC','divided 0.5-SPC',
                                  'divided 0.3-SPC','divided 0.1-SPC'))
   bs_plot <- data %>% 
