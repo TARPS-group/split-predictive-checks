@@ -1,5 +1,5 @@
 
-# This script computes p-values using POP_PC, PPC for different models
+# This script computes p-values using PPC, SPC for different models
 # All the results are automatically saved to .rdata file
 
 library(tidyverse)
@@ -9,7 +9,7 @@ rstan_options(auto_write=TRUE)
 
 ##### I. Functions to compute p-values for single EF models
 
-# This function produces the p-values of PPC, Pop-PC, single and divided SPCs.
+# This function produces the p-values of PPC, single and divided SPCs.
 # Input: 
 # - N: sample size of data
 # - iter: number of repeated experiments to generate a p-value

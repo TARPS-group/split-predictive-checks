@@ -31,10 +31,39 @@ flights_sampled_ten
 ```
 
 ```{r}
-# utility functions to compute p-value
 
+
+# ------------------------------------------------------------
+# Root Mean Squared Error
+#
+# Computes RMSE between observed values y and predictions yhat.
+#
+# Args:
+#   y    : numeric vector of observed outcomes
+#   yhat : numeric vector or matrix of predictions
+#
+# Returns:
+#   Numeric scalar RMSE
+# ------------------------------------------------------------
 rmse <- function(y, yhat) sqrt(mean((y - yhat)^2))
 
+
+
+# ------------------------------------------------------------
+# Posterior Predictive p-value
+#
+# Computes a two-sided Bayesian posterior predictive p-value.
+#
+# Args:
+#   model     : fitted brms model
+#   data      : dataset used for evaluation
+#   test_stat : function (e.g. mean, sd, var) or "MSE"
+#
+# Returns:
+#   List with:
+#     pval  : two-sided Bayesian p-value
+#     rmse  : predictive RMSE
+# ------------------------------------------------------------
 ppc_pvalue <- function(model, data, test_stat = mean) {
   y <- data$arr_delay
   yrep <- posterior_predict(model, newdata = data)
@@ -60,6 +89,22 @@ ppc_pvalue <- function(model, data, test_stat = mean) {
 }
 
 
+# ------------------------------------------------------------
+# Sample Predictive Check (Held-Out Evaluation)
+#
+# Computes predictive p-value on held-out data.
+# Allows new group levels for hierarchical models.
+#
+# Args:
+#   model     : fitted brms model (trained on training data)
+#   test_data : held-out dataset
+#   test_stat : function or "MSE"
+#
+# Returns:
+#   List with:
+#     pval  : two-sided Bayesian p-value
+#     rmse  : predictive RMSE on held-out data
+# ------------------------------------------------------------
 spc_pvalue <- function(model, test_data, test_stat = mean) {
   y <- test_data$arr_delay
   yrep <- posterior_predict(model, newdata = test_data, allow_new_levels = TRUE, sample_new_levels = "gaussian")
@@ -86,6 +131,21 @@ spc_pvalue <- function(model, test_data, test_stat = mean) {
   return(list("pval"=2*pmin(pval,1-pval), "rmse"=rmse_val))
 }
 
+
+# ------------------------------------------------------------
+# Prior Predictive p-value
+#
+# Computes p-value using draws from the prior predictive
+# distribution (no data conditioning).
+#
+# Args:
+#   model     : brms model with priors defined
+#   data      : dataset for generating predictions
+#   test_stat : function or "MSE"
+#
+# Returns:
+#   Two-sided prior predictive p-value
+# ------------------------------------------------------------
 prior_ppc_pvalue <- function(model, data, test_stat = mean) {
   y <- data$arr_delay
   
@@ -109,7 +169,20 @@ prior_ppc_pvalue <- function(model, data, test_stat = mean) {
   return(2 * pmin(pval, 1 - pval))
 }
 
-
+# ------------------------------------------------------------
+# Hjort et al. Post-Processed PPC
+#
+# Implements post-processing via empirical CDF of
+# posterior predictive discrepancy values.
+#
+# Args:
+#   model     : fitted brms model
+#   data      : evaluation dataset
+#   test_stat : function or "MSE"
+#
+# Returns:
+#   Two-sided post-processed p-value
+# ------------------------------------------------------------
 hjort_postprocessed_ppc <- function(model, data, test_stat = mean) {
   y <- data$arr_delay
   
@@ -150,7 +223,17 @@ data_df <- flights_sampled_ten
 ## MODEL SETUP: Time generalizable model
 
 ```{r}
-
+# ------------------------------------------------------------
+# Time Generalization Model
+#
+# Goal:
+#   Evaluate predictive performance across time.
+#
+# Strategy:
+#   - Encode month cyclically using sine/cosine terms
+#   - Fit model on full data for PPC
+#   - Hold out December for SPC evaluation
+# ------------------------------------------------------------
 # Basic model for PPC, PPC (Hjort) and Prior PC
 data_df$month_num <- as.numeric(data_df$month)  
 data_df$cos_month <- cos(data_df$month_num / (12 * pi))
@@ -179,7 +262,6 @@ train_time <- data_df %>%
 
 test_time <- data_df %>%
   filter(month == "12")
-
 
 
 m_month_overfit_spc <- brm(
@@ -267,6 +349,18 @@ save(results,file="airline_pvals_overfit.rda")
 
 
 ```{r}
+# ------------------------------------------------------------
+# Destination Generalization Model
+#
+# Goal:
+#   Evaluate predictive performance on unseen airports.
+#
+# Strategy:
+#   - Hierarchical random intercept for destination
+#   - Hold out a specific airport (AKL)
+#   - Compare PPC vs SPC vs Prior vs Hjort PPC
+# ------------------------------------------------------------
+
 # Model for PPC
 m_dest_overfit_ppc <- brm(
   arr_delay ~ dep_delay + distance + (1 | dest),
