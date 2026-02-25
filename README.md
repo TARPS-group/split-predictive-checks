@@ -17,6 +17,8 @@ The repo includes functionality to load data, compute single and divided SPCs fo
 
 2. Reproduction scripts ([script/](https://github.com/TARPS-group/split-predictive-checks/blob/main/script/) folder)
 
+To reproduce the illustrative figures in Fig. 1: Run [/simulation-models/illustrative_figures.Rmd](https://github.com/TARPS-group/split-predictive-checks/blob/main/script/simulation-models/illustrative_figures.Rmd).
+
 To reproduce results for simulation study in Section 5 and Appendix 2:
 - The folder [/simulation-models](https://github.com/TARPS-group/split-predictive-checks/tree/main/script/simulation-models) contains all the models used in the simulation study.
 - To reproduce all simulation figures and tables, first run [script/simulation_main.r](https://github.com/TARPS-group/split-predictive-checks/blob/main/script/simulation_main.R), then knit
