@@ -5,7 +5,7 @@ This ```spc``` repository  was used to reproduce the experiments for:
 *Calibrated Model Criticism Using Split Predictive Checks*. 2022.
 
 
-The package includes functionality to load data, compute single and divided SPCs for conjugate Poisson model, Gaussian location model, two-level hierarchical Gaussian models, run SPCs for real-data examples and compare performance of SPCs to other methods.
+The repo includes functionality to load data, compute single and divided SPCs for conjugate Poisson model, Gaussian location model, two-level hierarchical Gaussian models, run SPCs for real-data examples and compare performance of SPCs to other methods.
 
 
 # Usage
