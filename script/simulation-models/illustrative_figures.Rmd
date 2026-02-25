@@ -1,0 +1,84 @@
+---
+title: "illustrative_figures"
+output: html_document
+---
+
+
+```{r}
+# Grid of rho values
+rho <- seq(0.05, 50, length.out = 500)
+
+# Alpha levels
+alphas <- c(0.001, 0.01, 0.05)
+
+# Python/matplotlib default colors
+py_colors <- c("#1f77b4", "#ff7f0e", "#2ca02c")
+
+# Two-sided asymptotic power function
+power_fun <- function(rho, alpha) {
+  2 * (1 - pnorm(qnorm(1 - alpha/2) / rho))
+}
+
+# Compute power curves
+power_mat <- sapply(alphas, function(a) power_fun(rho, a))
+
+# Plot
+matplot(rho, power_mat, type = "l", lwd = 2, lty = 1,
+        xlab = expression(rho),
+        ylab = "Asymptotic power",
+        col = py_colors,
+        ylim = c(0, 1.05))
+
+# Horizontal dashed line at power = 1
+abline(h = 1, lty = 2)
+
+legend_labels <- lapply(alphas, function(a) bquote(alpha == .(a)))
+
+legend("bottomright",
+       legend = legend_labels,
+       col = py_colors,
+       lwd = 2)
+
+
+```
+
+```{r}
+set.seed(123)
+
+# rho values
+rhos <- c(0.1, 0.5, 1.0, 5.0, 10)
+
+# Python/matplotlib colors
+py_colors <- c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd")
+
+# Grid of p-values
+p <- seq(1e-6, 0.999999, length.out = 2000)
+
+# One-sided density function (numerical approximation)
+density_one_sided <- function(p, rho) {
+  z <- qnorm(1 - p)
+  (1/rho) * (dnorm(z/rho) / dnorm(z))
+}
+
+# Compute densities
+dens_mat <- sapply(rhos, function(r) density_one_sided(p, r))
+
+# Plot
+matplot(p, dens_mat, type = "l", lwd = 1, lty = 1,
+        col = py_colors,
+        xlab = "P-values",
+        ylab = "Asymptotic density",
+        xlim = c(0,1),
+        ylim = c(0, 15))
+
+# Legend with math expressions
+legend_labels <- lapply(rhos, function(r) bquote(rho == .(r)))
+
+legend("topright",
+       legend = legend_labels,
+       col = py_colors,
+       lwd = 1)
+
+
+```
+
