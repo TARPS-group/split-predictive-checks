@@ -42,6 +42,17 @@ X_small <- X_all[, keep]
 
 
 ```{r}
+
+# ------------------------------------------------------------
+# Generate binary predictions from posterior draws
+#
+# Args:
+#   X_new            : N_new × P design matrix
+#   posterior_draws  : list with elements alpha and beta
+#
+# Returns:
+#   Matrix of size N_new × S of binary draws
+# ------------------------------------------------------------
 predict_random <- function(X_new, posterior_draws) {
   # X_new: N_new x P
 
@@ -57,6 +68,13 @@ predict_random <- function(X_new, posterior_draws) {
   return(y_pred)
 }
 
+
+# ------------------------------------------------------------
+# Generate predictions and return probabilities
+#
+# Returns both binary draws and probability matrix
+# Useful for log-loss or calibration diagnostics
+# ------------------------------------------------------------
 predict_with_p <- function(X_new, posterior_draws) {
   N_new <- nrow(X_new)
   S <- length(posterior_draws$alpha)
@@ -69,6 +87,12 @@ predict_with_p <- function(X_new, posterior_draws) {
   return(list("y_pred" = y_pred, "p" = p_mat))
 }
 
+# ------------------------------------------------------------
+# Log-loss (cross-entropy)
+#
+# Measures probabilistic predictive accuracy.
+# Lower values indicate better calibration and sharpness.
+# ------------------------------------------------------------
 log_loss <- function(y, p) {
   eps <- 1e-15 
   p <- pmin(pmax(p, eps), 1 - eps)
@@ -80,6 +104,7 @@ log_loss <- function(y, p) {
 stan_file <- "horseshoe_logit_singh.stan"
 sm <- stan_model(stan_file)
 
+# Full-data Stan input
 stan_data_all <- list(
   N = nrow(X_small),
   P = ncol(X_small),
@@ -87,6 +112,7 @@ stan_data_all <- list(
   y = y_all
 )
 
+# Fit model
 fit <- sampling(
   sm,
   data = stan_data_all,
@@ -98,12 +124,20 @@ fit <- sampling(
   refresh = 0
 )
 
+# Extract posterior draws
+draws <- rstan::extract(fit, permuted = TRUE)
+
+# Posterior predictive samples
 y_rep <- predict_random(X_small, draws)  # generate new predictive samples
 
+# Discrepancy: sample mean
 mean_obs <- mean(y_all)
 mean_rep <- colMeans(y_rep)
+
+# One-sided posterior predictive p-value
 ppc_pval <- mean(mean_rep > mean_obs)
 
+# Save two-sided version
 load("microarray_results.rda")
 results <- bind_rows(results, tibble(
   pval = 2*pmin(ppc_pval, 1-ppc_pval),
@@ -122,7 +156,6 @@ save(results, file="microarray_results.rda")
 # split by id to keep the temporal order
 
 # Train/test split
-
 ix_cancer <- which(y_all == 1)
 ix_healthy <- which(y_all == 0)
 
